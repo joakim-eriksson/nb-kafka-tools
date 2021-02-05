@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+AutoUpdate-Show-In-Client: true
+OpenIDE-Module: se.jocke.nb.kafka
+OpenIDE-Module-Layer: se/jocke/nb/kafka/layer.xml
+OpenIDE-Module-Localizing-Bundle: se/jocke/nb/kafka/Bundle.properties
+OpenIDE-Module-Specification-Version: 1.0
+
