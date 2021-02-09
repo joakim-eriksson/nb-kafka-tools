@@ -1,4 +1,4 @@
-package se.jocke.nb.kafka.options;
+package se.jocke.nb.kafka.options.form;
 
 import javax.swing.InputVerifier;
 import javax.swing.JComponent;
@@ -12,11 +12,13 @@ public final class DataFormInputVerifier<C extends JComponent, T> extends InputV
     private final InputAdapter inputAdapter;
 
     private final InputConverter<T> converter;
+    private final ValidationFailedDisplay failedDisplay;
 
-    public DataFormInputVerifier(InputAdapter inputAdapter, InputConverter<T> converter) {
+    public DataFormInputVerifier(InputAdapter inputAdapter, InputConverter<T> converter, ValidationFailedDisplay failedDisplay) {
         this.inputAdapter = inputAdapter;
         this.converter = converter;
         this.inputAdapter.getLookup().lookupResult(String.class).addLookupListener(r -> verify(null));
+        this.failedDisplay = failedDisplay;
     }
 
     @Override
@@ -25,8 +27,10 @@ public final class DataFormInputVerifier<C extends JComponent, T> extends InputV
         try {
             fromString = getValue();
         } catch (IllegalArgumentException e) {
+            failedDisplay.show(e.getMessage());
             return false;
         }
+        failedDisplay.clear();
         return fromString != null;
     }
 
@@ -43,7 +47,7 @@ public final class DataFormInputVerifier<C extends JComponent, T> extends InputV
         inputAdapter.setValueFromString(value);
     }
 
-    boolean isValid() {
+    public boolean isValid() {
         return verify(null);
     }
 }

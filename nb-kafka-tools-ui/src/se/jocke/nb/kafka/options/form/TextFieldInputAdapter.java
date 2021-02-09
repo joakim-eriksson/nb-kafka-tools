@@ -1,10 +1,11 @@
 package se.jocke.nb.kafka.options.form;
 
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import javax.swing.JTextField;
 import org.openide.util.Lookup;
 import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
-import se.jocke.nb.kafka.options.InputAdapter;
 
 /**
  *
@@ -22,6 +23,13 @@ public class TextFieldInputAdapter implements InputAdapter {
         this.textField = textField;
         this.content = new InstanceContent();
         this.lookup = new AbstractLookup(content);
+        textField.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                JTextField textField = (JTextField) e.getSource();
+                String text = textField.getText();
+            }
+        });
     }
 
     @Override

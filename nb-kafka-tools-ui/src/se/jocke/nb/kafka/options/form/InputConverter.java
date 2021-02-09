@@ -1,4 +1,4 @@
-package se.jocke.nb.kafka.options;
+package se.jocke.nb.kafka.options.form;
 
 /**
  *
