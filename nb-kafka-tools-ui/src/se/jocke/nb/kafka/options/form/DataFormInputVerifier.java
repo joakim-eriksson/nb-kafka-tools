@@ -9,20 +9,22 @@ import javax.swing.JComponent;
  */
 public final class DataFormInputVerifier<C extends JComponent, T> extends InputVerifier {
 
-    private final InputAdapter inputAdapter;
+    private final InputAdapter<?> inputAdapter;
 
     private final InputConverter<T> converter;
+
     private final ValidationFailedDisplay failedDisplay;
 
-    public DataFormInputVerifier(InputAdapter inputAdapter, InputConverter<T> converter, ValidationFailedDisplay failedDisplay) {
+    public DataFormInputVerifier(InputAdapter<?> inputAdapter, InputConverter<T> converter, ValidationFailedDisplay failedDisplay) {
         this.inputAdapter = inputAdapter;
         this.converter = converter;
-        this.inputAdapter.getLookup().lookupResult(String.class).addLookupListener(r -> verify(null));
         this.failedDisplay = failedDisplay;
+        this.inputAdapter.addChangeListener(e -> verify(null));
     }
 
     @Override
     public boolean verify(JComponent component) {
+        
         T fromString;
         try {
             fromString = getValue();
