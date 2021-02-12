@@ -1,5 +1,7 @@
 package se.jocke.nb.kafka.options.form;
 
+import java.lang.invoke.MethodHandles;
+import java.util.logging.Logger;
 import javax.swing.InputVerifier;
 import javax.swing.JComponent;
 
@@ -8,6 +10,8 @@ import javax.swing.JComponent;
  * @author jocke
  */
 public final class DataFormInputVerifier<C extends JComponent, T> extends InputVerifier {
+
+    private static final Logger LOG = Logger.getLogger(MethodHandles.lookup().lookupClass().getName());
 
     private final InputAdapter<?> inputAdapter;
 

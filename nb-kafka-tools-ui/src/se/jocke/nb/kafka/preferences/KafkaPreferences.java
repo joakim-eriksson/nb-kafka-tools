@@ -36,7 +36,7 @@ public final class KafkaPreferences {
 
     public static boolean isValid() {
         return !Arrays.stream(ManagedAdminClientConfig.values())
-                .anyMatch(c -> getOrEmpty(c.getKey()).isBlank());
+                .anyMatch(c -> getOrEmpty(c.getKey()).trim().isEmpty());
     }
 
     public static void sync() throws BackingStoreException {

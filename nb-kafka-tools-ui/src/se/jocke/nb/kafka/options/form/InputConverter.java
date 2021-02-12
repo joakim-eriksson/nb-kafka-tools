@@ -15,6 +15,9 @@ public interface InputConverter<T> {
 
         @Override
         public String fromString(String value) {
+            if (value == null || value.isBlank()) {
+                throw new IllegalArgumentException("Required value");
+            }
             return value;
         }
     };

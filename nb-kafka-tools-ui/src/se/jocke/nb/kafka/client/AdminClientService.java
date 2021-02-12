@@ -4,15 +4,18 @@ import java.io.Closeable;
 import java.lang.invoke.MethodHandles;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
+import se.jocke.nb.kafka.model.KafkaCreateTopic;
 import se.jocke.nb.kafka.preferences.KafkaPreferences;
 import se.jocke.nb.kafka.model.KafkaTopic;
 
@@ -46,7 +49,13 @@ public final class AdminClientService implements Closeable {
         });
     }
 
-    public void createTopics(Collection<NewTopic> newTopics, Runnable runnable, Consumer<Throwable> throwConsumer) {
+    public void createTopics(Collection<KafkaCreateTopic> createTopics, Runnable runnable, Consumer<Throwable> throwConsumer) {
+        
+        List<NewTopic> newTopics = createTopics
+                .stream()
+                .map(c -> new NewTopic(c.getName(), c.getNumPartitions(), c.getReplicationFactor()).configs(c.getConfigs()))
+                .collect(toList());
+        
         adminClient.createTopics(newTopics).all().whenComplete((v, ex) -> {
             if (ex == null) {
                 runnable.run();
