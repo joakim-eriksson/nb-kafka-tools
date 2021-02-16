@@ -9,7 +9,7 @@ import org.openide.nodes.ChildFactory;
 import org.openide.nodes.Node;
 import se.jocke.nb.kafka.preferences.KafkaPreferences;
 import se.jocke.nb.kafka.client.AdminClientService;
-import se.jocke.nb.kafka.model.KafkaTopic;
+import se.jocke.nb.kafka.nodes.topics.KafkaTopic;
 
 /**
  *

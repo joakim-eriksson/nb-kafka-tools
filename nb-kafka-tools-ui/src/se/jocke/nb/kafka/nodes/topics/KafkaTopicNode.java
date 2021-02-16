@@ -3,7 +3,6 @@ package se.jocke.nb.kafka.nodes.topics;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
 import org.openide.util.lookup.Lookups;
-import se.jocke.nb.kafka.model.KafkaTopic;
 
 /**
  *

@@ -1,4 +1,4 @@
-package se.jocke.nb.kafka.model;
+package se.jocke.nb.kafka.nodes.topics;
 
 /**
  *

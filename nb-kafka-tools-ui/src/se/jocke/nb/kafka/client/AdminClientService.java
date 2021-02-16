@@ -15,9 +15,9 @@ import static java.util.stream.Collectors.toSet;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
-import se.jocke.nb.kafka.model.KafkaCreateTopic;
+import se.jocke.nb.kafka.nodes.topics.KafkaCreateTopic;
 import se.jocke.nb.kafka.preferences.KafkaPreferences;
-import se.jocke.nb.kafka.model.KafkaTopic;
+import se.jocke.nb.kafka.nodes.topics.KafkaTopic;
 
 /**
  *
