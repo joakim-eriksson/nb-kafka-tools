@@ -97,8 +97,11 @@ public class KafkaCreateTopic {
     public static class KafkaCreateTopicBuilder {
 
         private String name;
-        private Optional<Integer> numPartitions;
-        private Optional<Short> replicationFactor;
+
+        private Optional<Integer> numPartitions = Optional.empty();
+
+        private Optional<Short> replicationFactor = Optional.empty();
+
         private Map<String, String> configs;
 
         public KafkaCreateTopicBuilder() {
@@ -111,6 +114,11 @@ public class KafkaCreateTopic {
 
         public KafkaCreateTopicBuilder numPartitions(Optional<Integer> numPartitions) {
             this.numPartitions = numPartitions;
+            return this;
+        }
+
+        public KafkaCreateTopicBuilder replicationFactor(Optional<Short> replicationFactor) {
+            this.replicationFactor = replicationFactor;
             return this;
         }
 

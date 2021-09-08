@@ -39,4 +39,8 @@ public class KafkaTopicChildFactory extends ChildFactory<KafkaTopic> {
     protected Node createNodeForKey(KafkaTopic key) {
         return new KafkaTopicNode(key);
     }
+    
+    public void refresh() {
+        this.refresh(false);
+    }
 }

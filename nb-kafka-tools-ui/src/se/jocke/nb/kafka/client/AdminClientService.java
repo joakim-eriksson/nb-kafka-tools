@@ -56,6 +56,8 @@ public final class AdminClientService implements Closeable {
                 .map(c -> new NewTopic(c.getName(), c.getNumPartitions(), c.getReplicationFactor()).configs(c.getConfigs()))
                 .collect(toList());
         
+        System.out.println(newTopics);
+        
         adminClient.createTopics(newTopics).all().whenComplete((v, ex) -> {
             if (ex == null) {
                 runnable.run();

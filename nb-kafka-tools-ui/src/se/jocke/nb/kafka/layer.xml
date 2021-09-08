@@ -6,7 +6,7 @@
             <file name="se-jocke-nb-kafka-nodes-root.KafkaServiceRootNode.instance">
                 <attr name="iconResource" stringvalue="se/jocke/nb/kafka/nodes/root/kafka.png"/>
                 <attr name="name" stringvalue="kafka"/>
-                <attr methodvalue="org.openide.nodes.NodeOp.factory" name="instanceCreate"/>
+                <attr name="instanceCreate" methodvalue="org.openide.nodes.NodeOp.factory"/>
                 <attr bundlevalue="se.jocke.nb.kafka.nodes.root.Bundle#LBL_KafkaNode" name="displayName"/>
                 <attr name="original" newvalue="se.jocke.nb.kafka.nodes.root.KafkaServiceRootNode"/>
                 <attr bundlevalue="se.jocke.nb.kafka.nodes.root.Bundle#TIP_KafkaNode" name="shortDescription"/>
