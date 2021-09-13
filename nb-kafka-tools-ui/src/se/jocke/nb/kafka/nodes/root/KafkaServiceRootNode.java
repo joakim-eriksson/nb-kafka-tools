@@ -14,11 +14,12 @@ import org.openide.*;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
 import org.openide.util.Exceptions;
-import static se.jocke.nb.kafka.action.Actions.actionsOf;
-import static se.jocke.nb.kafka.action.Actions.createAction;
-import se.jocke.nb.kafka.client.AdminClientService;
+import org.openide.util.Lookup;
 import se.jocke.nb.kafka.nodes.topics.KafkaCreateTopic;
 import se.jocke.nb.kafka.nodes.topics.TopicEditor;
+import static se.jocke.nb.kafka.action.Actions.actions;
+import static se.jocke.nb.kafka.action.Actions.action;
+import se.jocke.nb.kafka.client.AdminClientService;
 
 /**
  *
@@ -43,30 +44,41 @@ public class KafkaServiceRootNode extends AbstractNode {
 
     public void showTopicEditor() {
         TopicEditor topicEditor = new TopicEditor();
-        DialogDescriptor descriptor = new DialogDescriptor(topicEditor, "Create", true, (ActionEvent event) -> {
-            LOG.log(Level.INFO, "Action triggered with command {0}", event.getActionCommand());
-            
-            if ("OK".equalsIgnoreCase(event.getActionCommand())) {
-                Map<String, String> configs = topicEditor.getTopicProperties().entrySet().stream().collect(toMap(Entry::getKey, e -> e.getValue().toString()));
-                KafkaCreateTopic createTopic = new KafkaCreateTopic.KafkaCreateTopicBuilder()
-                        .name(topicEditor.getTopicName())
-                        .numPartitions(Optional.ofNullable(topicEditor.getNumberOfPartitions()))
-                        .replicationFactor(Optional.ofNullable(topicEditor.getReplicationFactor()))
-                        .configs(configs)
-                        .build();
-
-                try (AdminClientService client = new AdminClientService()) {
-                    client.createTopics(Collections.singletonList(createTopic), this::refreshTopics, Exceptions::printStackTrace);
-                }
-
-            } else if ("Cancel".equalsIgnoreCase(event.getActionCommand())) {
-
-            } else {
-                throw new AssertionError("Unknown command " + event.getActionCommand());
-            }
-        });
-
+        DialogDescriptor descriptor = new DialogDescriptor(topicEditor, "Create", true, (ActionEvent event) -> onDialogDescriptorAction(event, topicEditor));
         DialogDisplayer.getDefault().notifyLater(descriptor);
+    }
+
+    public void onDialogDescriptorAction(ActionEvent event, TopicEditor topicEditor) {
+        LOG.log(Level.INFO, "Action triggered with command {0}", event.getActionCommand());
+
+        if ("OK".equalsIgnoreCase(event.getActionCommand())) {
+
+            onDialogDescriptorActionOK(topicEditor);
+
+        } else if ("Cancel".equalsIgnoreCase(event.getActionCommand())) {
+            LOG.log(Level.INFO, "Action Cancel triggered");
+
+        } else {
+            throw new AssertionError("Unknown command " + event.getActionCommand());
+        }
+    }
+
+    private void onDialogDescriptorActionOK(TopicEditor topicEditor) {
+        Map<String, String> configs = topicEditor.getTopicProperties().entrySet()
+                .stream()
+                .collect(toMap(Entry::getKey, e -> e.getValue().toString()));
+
+        KafkaCreateTopic createTopic = new KafkaCreateTopic.KafkaCreateTopicBuilder()
+                .name(topicEditor.getTopicName())
+                .numPartitions(Optional.ofNullable(topicEditor.getNumberOfPartitions()))
+                .replicationFactor(Optional.ofNullable(topicEditor.getReplicationFactor()))
+                .configs(configs)
+                .build();
+
+        AdminClientService client = Lookup.getDefault().lookup(AdminClientService.class);
+
+        client.createTopics(Collections.singletonList(createTopic), this::refreshTopics, Exceptions::printStackTrace);
+
     }
 
     public void refreshTopics() {
@@ -75,9 +87,8 @@ public class KafkaServiceRootNode extends AbstractNode {
 
     @Override
     public Action[] getActions(boolean context) {
-        return actionsOf(
-                createAction("Refresh", this::refreshTopics),
-                createAction("Create Topic", this::showTopicEditor)
+        return actions(action("Refresh", this::refreshTopics),
+                action("Create Topic", this::showTopicEditor)
         );
     }
 }

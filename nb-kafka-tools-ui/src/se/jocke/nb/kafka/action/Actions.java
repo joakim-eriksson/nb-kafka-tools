@@ -3,13 +3,14 @@ package se.jocke.nb.kafka.action;
 import java.awt.event.ActionEvent;
 import java.util.function.Consumer;
 import javax.swing.AbstractAction;
+import javax.swing.Action;
 
 public class Actions {
 
     private Actions() {
     }
 
-    public static AbstractAction createAction(String name, Runnable runnnable) {
+    public static AbstractAction action(String name, Runnable runnnable) {
         return new AbstractAction(name) {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -27,7 +28,7 @@ public class Actions {
         };
     }
     
-    public static AbstractAction[] actionsOf(AbstractAction... actions) {
+    public static Action[] actions(Action... actions) {
         return actions;
     }
 }

@@ -2,13 +2,19 @@ package se.jocke.nb.kafka.nodes.root;
 
 import se.jocke.nb.kafka.nodes.topics.KafkaTopicNode;
 import java.lang.invoke.MethodHandles;
+import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.openide.nodes.ChildFactory;
 import org.openide.nodes.Node;
-import se.jocke.nb.kafka.preferences.KafkaPreferences;
+import org.openide.util.Exceptions;
+import org.openide.util.Lookup;
 import se.jocke.nb.kafka.client.AdminClientService;
+import se.jocke.nb.kafka.preferences.KafkaPreferences;
 import se.jocke.nb.kafka.nodes.topics.KafkaTopic;
 
 /**
@@ -18,16 +24,29 @@ import se.jocke.nb.kafka.nodes.topics.KafkaTopic;
 public class KafkaTopicChildFactory extends ChildFactory<KafkaTopic> {
 
     private static final Logger logger = Logger.getLogger(MethodHandles.lookup().lookupClass().getName());
-   
+
     @Override
     protected boolean createKeys(List<KafkaTopic> topics) {
+
+        BlockingQueue<Collection<KafkaTopic>> topicTransfer = new LinkedBlockingDeque<>();
+
         if (KafkaPreferences.isValid()) {
-            try ( AdminClientService adminClientService = new AdminClientService()) {
-                adminClientService.listTopics(topics::addAll, throwable -> onException(topics, throwable));
-            } catch (Exception e) {
-                onException(topics, e);
-            }
+            AdminClientService adminClientService = Lookup.getDefault().lookup(AdminClientService.class);
+            adminClientService.listTopics(topicTransfer::offer, throwable -> {
+                onException(topics, throwable);
+            });
         }
+
+        Collection<KafkaTopic> poll;
+        try {
+            poll = topicTransfer.poll(20, TimeUnit.SECONDS);
+            if (poll != null) {
+                topics.addAll(poll);
+            }
+        } catch (InterruptedException ex) {
+            Exceptions.printStackTrace(ex);
+        }
+
         return true;
     }
 
@@ -39,7 +58,7 @@ public class KafkaTopicChildFactory extends ChildFactory<KafkaTopic> {
     protected Node createNodeForKey(KafkaTopic key) {
         return new KafkaTopicNode(key);
     }
-    
+
     public void refresh() {
         this.refresh(false);
     }
