@@ -1,10 +1,16 @@
 package se.jocke.nb.kafka.window;
 
+import javax.swing.table.TableModel;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
+import org.openide.util.Lookup;
 import org.openide.windows.TopComponent;
 import org.openide.util.NbBundle.Messages;
+import org.openide.util.lookup.AbstractLookup;
+import org.openide.util.lookup.InstanceContent;
+import org.openide.util.lookup.ProxyLookup;
+import se.jocke.nb.kafka.client.NBKafkaConsumer;
 import se.jocke.nb.kafka.nodes.topics.KafkaTopic;
 
 /**
@@ -33,9 +39,18 @@ import se.jocke.nb.kafka.nodes.topics.KafkaTopic;
 })
 public final class RecordsTopComponent extends TopComponent {
 
+    private static final int MIN_COLUMN_WIDTH = 200;
+    private static final int MAX_COLUMN_WIDTH = 400;
+  
+    private final InstanceContent content;
+    
     public static final String RECORDS_TOP_COMPONENT_ID = "RecordsTopComponent";
 
     public RecordsTopComponent() {
+        content = new InstanceContent();
+        content.add(this.getActionMap());
+        Lookup lkp = new ProxyLookup(new AbstractLookup(content));
+        associateLookup(lkp);
         initComponents();
         setName(Bundle.CTL_RecordsTopComponent());
         setToolTipText(Bundle.HINT_RecordsTopComponent());
@@ -49,44 +64,121 @@ public final class RecordsTopComponent extends TopComponent {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jToolBar1 = new javax.swing.JToolBar();
+        addButton = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        recordTable = new javax.swing.JTable();
+
+        jToolBar1.setRollover(true);
+        jToolBar1.setPreferredSize(new java.awt.Dimension(40, 40));
+
+        addButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/se/jocke/nb/kafka/window/add-record.png"))); // NOI18N
+        addButton.setFocusable(false);
+        addButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        addButton.setIconTextGap(0);
+        addButton.setLabel(org.openide.util.NbBundle.getMessage(RecordsTopComponent.class, "RecordsTopComponent.addButton.label")); // NOI18N
+        addButton.setMaximumSize(new java.awt.Dimension(36, 36));
+        addButton.setMinimumSize(new java.awt.Dimension(36, 36));
+        addButton.setPreferredSize(new java.awt.Dimension(36, 36));
+        addButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        addButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addButtonActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(addButton);
+
+        recordTable.setModel(new RecordTableModel());
+        recordTable.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_LAST_COLUMN);
+        jScrollPane1.setViewportView(recordTable);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
+            .addComponent(jToolBar1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(6, 6, 6)
+                .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 287, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
+        KafkaTopic topic = getLookup().lookup(KafkaTopic.class);
+        if (topic != null) {
+            AddMessagePanel addMessagePanel = new AddMessagePanel(topic);
+            addMessagePanel.showDialog();
+        }
+    }//GEN-LAST:event_addButtonActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton addButton;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JToolBar jToolBar1;
+    private javax.swing.JTable recordTable;
     // End of variables declaration//GEN-END:variables
     @Override
     public void componentOpened() {
         requestActive();
+        sizeColumns();
+    }
+
+    private void sizeColumns() {
+        TableModel model = recordTable.getModel();
+        int columnsToResize = model.getColumnCount() - 1;
+        for (int i = 0; i < columnsToResize; i++) {
+            recordTable.getColumnModel().getColumn(i).setMaxWidth(MAX_COLUMN_WIDTH);
+            recordTable.getColumnModel().getColumn(i).setMinWidth(MIN_COLUMN_WIDTH);
+        }
     }
 
     @Override
     public void componentClosed() {
-        // TODO add custom code on component closing
+       closeResources();
     }
 
     public void showTopic(KafkaTopic topic) {
+
+        closeResources();
+        
+        content.add(topic);
+
         setDisplayName(topic.getName());
+
+        RecordTableModel tableModel = new RecordTableModel();
+
+        recordTable.setModel(tableModel);
+
+        content.add(new NBKafkaConsumer(topic, tableModel::onRecord).start());
+
         open();
     }
 
+    private void closeResources() {
+        var consumer = getLookup().lookup(NBKafkaConsumer.class);
+        if (consumer != null) {
+            consumer.shutdown();
+            content.remove(consumer);
+        }
+
+        KafkaTopic kafkaTopic = getLookup().lookup(KafkaTopic.class);
+
+        if (kafkaTopic != null) {
+            content.remove(kafkaTopic);
+        }
+    }
+
     void writeProperties(java.util.Properties p) {
-        // better to version settings since initial version as advocated at
-        // http://wiki.apidesign.org/wiki/PropertyFiles
         p.setProperty("version", "1.0");
-        // TODO store your settings
     }
 
     void readProperties(java.util.Properties p) {
         String version = p.getProperty("version");
-        // TODO read your settings according to their version
     }
 }

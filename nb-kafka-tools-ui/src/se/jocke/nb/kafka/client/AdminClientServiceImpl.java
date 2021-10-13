@@ -65,12 +65,10 @@ public final class AdminClientServiceImpl implements Closeable, AdminClientServi
     }
 
     private Set<ConfigResource> mapTopicNameToResourceDesc(Set<String> names) {
-        System.out.println(names);
         return names.stream().map(nm -> new ConfigResource(ConfigResource.Type.TOPIC, nm)).collect(toSet());
     }
 
     private Set<KafkaTopic> mapResourceDescToKafkaTopic(Map<ConfigResource, Config> descs) {
-        System.out.println(descs);
         return descs.entrySet()
                 .stream()
                 .map(entry -> new KafkaTopic(entry.getKey().name(), ofNullable(entry.getValue())))
