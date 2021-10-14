@@ -1,7 +1,7 @@
 package se.jocke.nb.kafka.window;
 
-import java.util.Hashtable;
-import javax.swing.plaf.basic.BasicSliderUI;
+import java.awt.event.ActionEvent;
+import javax.swing.Timer;
 import javax.swing.table.TableModel;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
@@ -24,8 +24,8 @@ import se.jocke.nb.kafka.nodes.topics.KafkaTopic;
 )
 @TopComponent.Description(
         preferredID = RecordsTopComponent.RECORDS_TOP_COMPONENT_ID,
-        //iconBase="SET/PATH/TO/ICON/HERE",
-        persistenceType = TopComponent.PERSISTENCE_ALWAYS
+        iconBase = "/se/jocke/nb/kafka/nodes/root/kafka.png",
+        persistenceType = TopComponent.PERSISTENCE_NEVER
 )
 @TopComponent.Registration(mode = "editor", openAtStartup = false)
 @ActionID(category = "Window", id = "se.jocke.nb.kafka.window.RecordsTopComponent")
@@ -43,9 +43,9 @@ public final class RecordsTopComponent extends TopComponent {
 
     private static final int MIN_COLUMN_WIDTH = 200;
     private static final int MAX_COLUMN_WIDTH = 400;
-  
+
     private final InstanceContent content;
-    
+
     public static final String RECORDS_TOP_COMPONENT_ID = "RecordsTopComponent";
 
     public RecordsTopComponent() {
@@ -69,15 +69,18 @@ public final class RecordsTopComponent extends TopComponent {
         jToolBar1 = new javax.swing.JToolBar();
         addButton = new javax.swing.JButton();
         stopButton = new javax.swing.JButton();
+        runButton = new javax.swing.JButton();
         filler3 = new javax.swing.Box.Filler(new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 32767));
         jComboBox1 = new javax.swing.JComboBox<>();
         filler4 = new javax.swing.Box.Filler(new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 32767));
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
         filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 0));
-        jLabel1 = new javax.swing.JLabel();
+        statusLabel = new javax.swing.JLabel();
+        filler5 = new javax.swing.Box.Filler(new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 32767));
+        recordCountLable = new javax.swing.JLabel();
         filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 32767));
-        jSpinner1 = new javax.swing.JSpinner();
+        rateSpinner = new javax.swing.JSpinner();
         jScrollPane1 = new javax.swing.JScrollPane();
         recordTable = new javax.swing.JTable();
 
@@ -106,7 +109,24 @@ public final class RecordsTopComponent extends TopComponent {
         stopButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         stopButton.setPreferredSize(new java.awt.Dimension(36, 36));
         stopButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        stopButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                stopButtonActionPerformed(evt);
+            }
+        });
         jToolBar1.add(stopButton);
+
+        runButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/se/jocke/nb/kafka/window/run.png"))); // NOI18N
+        runButton.setEnabled(false);
+        runButton.setFocusable(false);
+        runButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        runButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        runButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                runButtonActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(runButton);
         jToolBar1.add(filler3);
 
         jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Latest", "Erliest" }));
@@ -128,13 +148,22 @@ public final class RecordsTopComponent extends TopComponent {
         jToolBar1.add(jButton2);
         jToolBar1.add(filler1);
 
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(RecordsTopComponent.class, "RecordsTopComponent.jLabel1.text")); // NOI18N
-        jToolBar1.add(jLabel1);
+        org.openide.awt.Mnemonics.setLocalizedText(statusLabel, org.openide.util.NbBundle.getMessage(RecordsTopComponent.class, "RecordsTopComponent.statusLabel.text")); // NOI18N
+        jToolBar1.add(statusLabel);
+        jToolBar1.add(filler5);
+
+        org.openide.awt.Mnemonics.setLocalizedText(recordCountLable, org.openide.util.NbBundle.getMessage(RecordsTopComponent.class, "RecordsTopComponent.recordCountLable.text")); // NOI18N
+        jToolBar1.add(recordCountLable);
         jToolBar1.add(filler2);
 
-        jSpinner1.setModel(new javax.swing.SpinnerNumberModel(1.0d, 0.2d, 20.0d, 0.2d));
-        jSpinner1.setToolTipText(org.openide.util.NbBundle.getMessage(RecordsTopComponent.class, "RecordsTopComponent.jSpinner1.toolTipText")); // NOI18N
-        jToolBar1.add(jSpinner1);
+        rateSpinner.setModel(new javax.swing.SpinnerNumberModel(1.0d, 0.2d, 20.0d, 0.2d));
+        rateSpinner.setToolTipText(org.openide.util.NbBundle.getMessage(RecordsTopComponent.class, "RecordsTopComponent.rateSpinner.toolTipText")); // NOI18N
+        rateSpinner.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                rateSpinnerStateChanged(evt);
+            }
+        });
+        jToolBar1.add(rateSpinner);
 
         recordTable.setModel(new RecordTableModel());
         recordTable.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_LAST_COLUMN);
@@ -165,20 +194,51 @@ public final class RecordsTopComponent extends TopComponent {
         }
     }//GEN-LAST:event_addButtonActionPerformed
 
+    private void stopButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_stopButtonActionPerformed
+        NBKafkaConsumer consumer = getLookup().lookup(NBKafkaConsumer.class);
+        if (consumer != null) {
+            consumer.stop();
+            statusLabel.setText("Stopped");
+            runButton.setEnabled(true);
+            stopButton.setEnabled(false);
+        }
+    }//GEN-LAST:event_stopButtonActionPerformed
+
+    private void runButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_runButtonActionPerformed
+        NBKafkaConsumer consumer = getLookup().lookup(NBKafkaConsumer.class);
+        if (consumer != null) {
+            consumer.restart();
+            statusLabel.setText("Running");
+            stopButton.setEnabled(true);
+            runButton.setEnabled(false);
+        }
+    }//GEN-LAST:event_runButtonActionPerformed
+
+    private void rateSpinnerStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_rateSpinnerStateChanged
+        NBKafkaConsumer consumer = getLookup().lookup(NBKafkaConsumer.class);
+        if (consumer != null) {
+            Double rate = (Double) rateSpinner.getValue();
+            consumer.setRate(rate);
+        }
+    }//GEN-LAST:event_rateSpinnerStateChanged
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addButton;
     private javax.swing.Box.Filler filler1;
     private javax.swing.Box.Filler filler2;
     private javax.swing.Box.Filler filler3;
     private javax.swing.Box.Filler filler4;
+    private javax.swing.Box.Filler filler5;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JComboBox<String> jComboBox1;
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JSpinner jSpinner1;
     private javax.swing.JToolBar jToolBar1;
+    private javax.swing.JSpinner rateSpinner;
+    private javax.swing.JLabel recordCountLable;
     private javax.swing.JTable recordTable;
+    private javax.swing.JButton runButton;
+    private javax.swing.JLabel statusLabel;
     private javax.swing.JButton stopButton;
     // End of variables declaration//GEN-END:variables
     @Override
@@ -198,13 +258,13 @@ public final class RecordsTopComponent extends TopComponent {
 
     @Override
     public void componentClosed() {
-       closeResources();
+        closeResources();
     }
 
     public void showTopic(KafkaTopic topic) {
 
         closeResources();
-        
+
         content.add(topic);
 
         setDisplayName(topic.getName());
@@ -216,6 +276,19 @@ public final class RecordsTopComponent extends TopComponent {
         content.add(new NBKafkaConsumer(topic, tableModel::onRecord).start());
 
         open();
+        
+        Timer t = new Timer(500, this::updateRecordCountLabel);
+        
+        content.add(t);
+        
+        t.start();
+    }
+    
+    private void updateRecordCountLabel(ActionEvent e) {
+        var consumer = getLookup().lookup(NBKafkaConsumer.class);
+        if (consumer != null) {
+            recordCountLable.setText(recordTable.getModel().getRowCount() + "/" + consumer.getCount());
+        }
     }
 
     private void closeResources() {
@@ -229,6 +302,12 @@ public final class RecordsTopComponent extends TopComponent {
 
         if (kafkaTopic != null) {
             content.remove(kafkaTopic);
+        }
+
+        Timer timer = getLookup().lookup(Timer.class);
+
+        if (timer != null) {
+            timer.stop();
         }
     }
 
