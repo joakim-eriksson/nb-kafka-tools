@@ -123,7 +123,7 @@ public class NBKafkaConsumer implements Disposable {
     }
 
     public void restart() {
-        running.compareAndSet(false, true);
+        running.set(true);
     }
 
     public final void setRate(double permitsPerSecond) {

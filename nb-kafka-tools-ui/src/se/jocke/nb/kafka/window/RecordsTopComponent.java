@@ -163,7 +163,7 @@ public final class RecordsTopComponent extends TopComponent {
         jToolBar1.add(recordCountLable);
         jToolBar1.add(filler2);
 
-        rateSpinner.setModel(new javax.swing.SpinnerNumberModel(1.0d, 0.2d, 20.0d, 0.2d));
+        rateSpinner.setModel(new javax.swing.SpinnerNumberModel(5.0d, 0.5d, 100.0d, 0.5d));
         rateSpinner.setToolTipText(org.openide.util.NbBundle.getMessage(RecordsTopComponent.class, "RecordsTopComponent.rateSpinner.toolTipText")); // NOI18N
         rateSpinner.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {

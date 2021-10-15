@@ -255,7 +255,7 @@
         <Component class="javax.swing.JSpinner" name="rateSpinner">
           <Properties>
             <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
-              <SpinnerModel initial="1.0" maximum="20.0" minimum="0.2" numberType="java.lang.Double" stepSize="0.2" type="number"/>
+              <SpinnerModel initial="5.0" maximum="100.0" minimum="0.5" numberType="java.lang.Double" stepSize="0.5" type="number"/>
             </Property>
             <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
               <ResourceString bundle="se/jocke/nb/kafka/window/Bundle.properties" key="RecordsTopComponent.rateSpinner.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
