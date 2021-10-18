@@ -1,6 +1,5 @@
 package se.jocke.nb.kafka.window;
 
-import com.google.common.base.Optional;
 import java.awt.EventQueue;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -11,9 +10,13 @@ import se.jocke.nb.kafka.client.NBKafkaConsumerRecord;
 
 public class RecordTableModel extends AbstractTableModel {
 
-    private final Set<NBKafkaConsumerRecord> uniqueRecords;
+    private final Set<String> uniqueKeys;
 
     private final List<NBKafkaConsumerRecord> records;
+
+    private final List<NBKafkaConsumerRecord> distinctRecords;
+
+    private boolean distinct = false;
 
     public enum VisibleColumn {
         TIMESTAMP {
@@ -53,14 +56,23 @@ public class RecordTableModel extends AbstractTableModel {
     private final List<VisibleColumn> columns;
 
     public RecordTableModel() {
-        this.uniqueRecords = new HashSet<>();
+        this.uniqueKeys = new HashSet<>();
         this.records = new LinkedList<>();
+        this.distinctRecords = new LinkedList<>();
         this.columns = List.of(VisibleColumn.TIMESTAMP, VisibleColumn.KEY, VisibleColumn.VALUE);
+    }
+
+    public void showDistinct(boolean distinct) {
+        boolean changed = this.distinct != distinct;
+        if (changed) {
+            this.distinct = distinct;
+            fireTableDataChanged();
+        }
     }
 
     @Override
     public int getRowCount() {
-        return records.size();
+        return getRecords().size();
     }
 
     @Override
@@ -70,25 +82,29 @@ public class RecordTableModel extends AbstractTableModel {
 
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
-        return columns.get(columnIndex).getValue(records.get(rowIndex));
+        return columns.get(columnIndex).getValue(getRecords().get(rowIndex));
     }
-    
+
     @Override
     public String getColumnName(int column) {
         return columns.get(column).name();
     }
-    
+
     public NBKafkaConsumerRecord getRecord(int selectedRow) {
         return records.get(selectedRow);
     }
 
+    private List<NBKafkaConsumerRecord> getRecords() {
+        return distinct ? distinctRecords : records;
+    }
 
     public void onRecord(NBKafkaConsumerRecord record) {
         EventQueue.invokeLater(() -> {
-            if (uniqueRecords.add(record)) {
-                records.add(0, record);
-                this.fireTableRowsInserted(0, 0);
+            records.add(0, record);
+            if (record.getKey() != null && uniqueKeys.add(record.getKey())) {
+                distinctRecords.add(0, record);
             }
+            this.fireTableRowsInserted(0, 0);
         });
     }
 }

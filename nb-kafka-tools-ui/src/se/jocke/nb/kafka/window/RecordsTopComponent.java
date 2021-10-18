@@ -59,15 +59,15 @@ public final class RecordsTopComponent extends TopComponent {
 
     private static final int MIN_COLUMN_WIDTH = 200;
     private static final int MAX_COLUMN_WIDTH = 400;
-    
+
     public static final String A_NEW = "new";
-    
+
     public static final String KEYLESS = "keyless";
 
     private final InstanceContent content;
 
     public static final String RECORDS_TOP_COMPONENT_ID = "RecordsTopComponent";
-    
+
     public RecordsTopComponent() {
         content = new InstanceContent();
         content.add(this.getActionMap());
@@ -97,6 +97,7 @@ public final class RecordsTopComponent extends TopComponent {
         filler4 = new javax.swing.Box.Filler(new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 32767));
         jButton1 = new javax.swing.JButton();
         refreshButton = new javax.swing.JButton();
+        distinctCheckBox = new javax.swing.JCheckBox();
         filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 0));
         statusLabel = new javax.swing.JLabel();
         filler5 = new javax.swing.Box.Filler(new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 32767));
@@ -181,6 +182,17 @@ public final class RecordsTopComponent extends TopComponent {
             }
         });
         jToolBar1.add(refreshButton);
+
+        org.openide.awt.Mnemonics.setLocalizedText(distinctCheckBox, org.openide.util.NbBundle.getMessage(RecordsTopComponent.class, "RecordsTopComponent.distinctCheckBox.text")); // NOI18N
+        distinctCheckBox.setFocusable(false);
+        distinctCheckBox.setHorizontalTextPosition(javax.swing.SwingConstants.RIGHT);
+        distinctCheckBox.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        distinctCheckBox.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                distinctCheckBoxItemStateChanged(evt);
+            }
+        });
+        jToolBar1.add(distinctCheckBox);
         jToolBar1.add(filler1);
 
         org.openide.awt.Mnemonics.setLocalizedText(statusLabel, org.openide.util.NbBundle.getMessage(RecordsTopComponent.class, "RecordsTopComponent.statusLabel.text")); // NOI18N
@@ -228,11 +240,11 @@ public final class RecordsTopComponent extends TopComponent {
             try {
                 final AddMessagePanel addMessagePanel = new AddMessagePanel(topic);
                 FileObject fob = FileUtil.createMemoryFileSystem().getRoot().createData(A_NEW, "json");
-                fob.addFileChangeListener(new FileChangeAdapter(){
+                fob.addFileChangeListener(new FileChangeAdapter() {
                     @Override
                     public void fileChanged(FileEvent fe) {
                         addMessagePanel.showDialog(fe.getFile());
-                    }                   
+                    }
                 });
                 DataObject dob = DataObject.find(fob);
                 EditorCookie ed = dob.getLookup().lookup(EditorCookie.class);
@@ -311,9 +323,15 @@ public final class RecordsTopComponent extends TopComponent {
         }
     }//GEN-LAST:event_openInEditorMenuItemActionPerformed
 
+    private void distinctCheckBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_distinctCheckBoxItemStateChanged
+        RecordTableModel model = (RecordTableModel) recordTable.getModel();
+        model.showDistinct(distinctCheckBox.isSelected());
+    }//GEN-LAST:event_distinctCheckBoxItemStateChanged
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addButton;
+    private javax.swing.JCheckBox distinctCheckBox;
     private javax.swing.Box.Filler filler1;
     private javax.swing.Box.Filler filler2;
     private javax.swing.Box.Filler filler3;
