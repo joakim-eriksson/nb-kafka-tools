@@ -1,6 +1,9 @@
 package se.jocke.nb.kafka.window;
 
-import com.google.common.base.Optional;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -11,6 +14,8 @@ import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.cookies.EditorCookie;
+import org.openide.filesystems.FileChangeAdapter;
+import org.openide.filesystems.FileEvent;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.loaders.DataObject;
@@ -54,11 +59,15 @@ public final class RecordsTopComponent extends TopComponent {
 
     private static final int MIN_COLUMN_WIDTH = 200;
     private static final int MAX_COLUMN_WIDTH = 400;
+    
+    public static final String A_NEW = "new";
+    
+    public static final String KEYLESS = "keyless";
 
     private final InstanceContent content;
 
     public static final String RECORDS_TOP_COMPONENT_ID = "RecordsTopComponent";
-
+    
     public RecordsTopComponent() {
         content = new InstanceContent();
         content.add(this.getActionMap());
@@ -216,10 +225,24 @@ public final class RecordsTopComponent extends TopComponent {
     private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
         KafkaTopic topic = getLookup().lookup(KafkaTopic.class);
         if (topic != null) {
-            AddMessagePanel addMessagePanel = new AddMessagePanel(topic);
-            addMessagePanel.showDialog();
+            try {
+                final AddMessagePanel addMessagePanel = new AddMessagePanel(topic);
+                FileObject fob = FileUtil.createMemoryFileSystem().getRoot().createData(A_NEW, "json");
+                fob.addFileChangeListener(new FileChangeAdapter(){
+                    @Override
+                    public void fileChanged(FileEvent fe) {
+                        addMessagePanel.showDialog(fe.getFile());
+                    }                   
+                });
+                DataObject dob = DataObject.find(fob);
+                EditorCookie ed = dob.getLookup().lookup(EditorCookie.class);
+                ed.open();
+            } catch (IOException ex) {
+                Exceptions.printStackTrace(ex);
+            }
         }
     }//GEN-LAST:event_addButtonActionPerformed
+
 
     private void stopButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_stopButtonActionPerformed
         NBKafkaConsumer consumer = getLookup().lookup(NBKafkaConsumer.class);
@@ -255,16 +278,30 @@ public final class RecordsTopComponent extends TopComponent {
 
     private void openInEditorMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openInEditorMenuItemActionPerformed
         int selectedRow = recordTable.getSelectedRow();
-        if (selectedRow > 0) {
+        KafkaTopic topic = getLookup().lookup(KafkaTopic.class);
+        if (selectedRow >= 0 && topic != null) {
             try {
                 RecordTableModel model = (RecordTableModel) recordTable.getModel();
                 NBKafkaConsumerRecord record = model.getRecord(selectedRow);
-                String name = record.getKey() != null ? record.getKey() : Long.toString(record.getTimestamp());
+                String name = record.getKey() != null ? record.getKey() : KEYLESS;
                 FileObject fob = FileUtil.createMemoryFileSystem().getRoot().createData(name, "json");
+
+                Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                JsonObject jsonObject = new JsonParser().parse(record.getValue()).getAsJsonObject();
+
                 try (OutputStream outputStream = fob.getOutputStream()) {
-                    outputStream.write(record.getValue().getBytes());
+                    outputStream.write(gson.toJson(jsonObject).getBytes());
                     outputStream.flush();
                 }
+
+                final AddMessagePanel addMessagePanel = new AddMessagePanel(topic);
+                fob.addFileChangeListener(new FileChangeAdapter() {
+                    @Override
+                    public void fileChanged(FileEvent fe) {
+                        addMessagePanel.showDialog(fe.getFile());
+                    }
+                });
+
                 DataObject dob = DataObject.find(fob);
                 EditorCookie ed = dob.getLookup().lookup(EditorCookie.class);
                 ed.open();
@@ -273,6 +310,7 @@ public final class RecordsTopComponent extends TopComponent {
             }
         }
     }//GEN-LAST:event_openInEditorMenuItemActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addButton;

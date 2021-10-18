@@ -1,20 +1,30 @@
 package se.jocke.nb.kafka.window;
 
+import com.google.common.collect.Sets;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import java.awt.event.ActionEvent;
+import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import static java.util.Optional.ofNullable;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.text.EditorKit;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
-import org.openide.text.CloneableEditorSupport;
+import org.openide.cookies.EditorCookie;
+import org.openide.filesystems.FileObject;
+import org.openide.loaders.DataObject;
+import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import se.jocke.nb.kafka.client.NBKafkaProducer;
 import se.jocke.nb.kafka.nodes.topics.KafkaTopic;
+import static se.jocke.nb.kafka.window.RecordsTopComponent.A_NEW;
+import static se.jocke.nb.kafka.window.RecordsTopComponent.KEYLESS;
 
 /**
  *
@@ -26,53 +36,58 @@ public class AddMessagePanel extends javax.swing.JPanel {
 
     private final KafkaTopic topic;
     
-    private static final String MIME_TYPE = "text/x-javascript";
+    private static final Set<String> NULL_KEYS = Sets.newHashSet(A_NEW, KEYLESS);
 
-    /**
-     * Creates new form AddMessagePanel
-     */
     public AddMessagePanel(KafkaTopic topic) {
         super();
         this.topic = topic;
         initComponents();
-        valueEditorPane.setContentType(MIME_TYPE);
-        EditorKit kit = CloneableEditorSupport.getEditorKit(MIME_TYPE);
-        valueEditorPane.setEditorKit(kit);
-        valueEditorPane.getDocument().putProperty("mimeType", MIME_TYPE);
-        valueEditorPane.setText("{}");
         topicLabel.setText(topic.getName());
     }
 
-   
-    public void showDialog() {
-        DialogDescriptor descriptor = new DialogDescriptor(this, "Add record", true, this::onDialogDescriptorAction);
+    public void showDialog(FileObject fileObject) {
+        DialogDescriptor descriptor = new DialogDescriptor(this, "Publish record", true, (actionEvent) -> onDialogDescriptorAction(actionEvent, fileObject));
         DialogDisplayer.getDefault().notifyLater(descriptor);
+        keyTextField.setText(NULL_KEYS.contains(fileObject.getName()) ? "" : fileObject.getName());
     }
 
-    public void onDialogDescriptorAction(ActionEvent event) {
+    public void onDialogDescriptorAction(ActionEvent event, FileObject fileObject) {
         LOG.log(Level.INFO, "Action triggered with command {0}", event.getActionCommand());
 
         if ("OK".equalsIgnoreCase(event.getActionCommand())) {
 
             NBKafkaProducer producer = Lookup.getDefault().lookup(NBKafkaProducer.class);
 
-            String key = ofNullable(keyTextField.getText()).orElse("");
-            String value = ofNullable(valueEditorPane.getText()).orElse("");
+            try {
+                String key = keyTextField.getText().isBlank() ? null : keyTextField.getText();
+                String value = fileObject.asText();
 
-            if (!value.isBlank()) {
-                ProducerRecord<String, String> pr = new ProducerRecord<>(topic.getName(), key, value);
-                producer.send(pr, (RecordMetadata rm, Exception ex) -> {
-                    if (ex != null) {
-                        Exceptions.printStackTrace(ex);
-                    }
-                });
+                if (value != null && !value.isBlank()) {
+                    GsonBuilder gsonBuilder = new GsonBuilder();
+                    Gson gson = gsonBuilder.create();
+                    JsonObject jsonObject = new JsonParser().parse(value).getAsJsonObject();
+                    ProducerRecord<String, String> pr = new ProducerRecord<>(topic.getName(), key, trimCheckBox.isSelected() ? gson.toJson(jsonObject) : value);
+                    producer.send(pr, (RecordMetadata rm, Exception ex) -> {
+                        if (ex == null) {
+                            try {
+                                DataObject dob = DataObject.find(fileObject);
+                                EditorCookie ed = dob.getLookup().lookup(EditorCookie.class);
+                                ed.close();
+                            } catch (DataObjectNotFoundException objectNotFoundException) {
+                                Exceptions.printStackTrace(objectNotFoundException);
+                            }
+                        } else {
+                            Exceptions.printStackTrace(ex);
+                        }
+                    });
+                }
+
+            } catch (IOException ex) {
+                Exceptions.printStackTrace(ex);
             }
 
         } else if ("Cancel".equalsIgnoreCase(event.getActionCommand())) {
             LOG.log(Level.INFO, "Action Cancel triggered");
-
-        } else {
-            throw new AssertionError("Unknown command " + event.getActionCommand());
         }
     }
 
@@ -85,13 +100,11 @@ public class AddMessagePanel extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jScrollPane1 = new javax.swing.JScrollPane();
-        valueEditorPane = new javax.swing.JEditorPane();
         jLabel1 = new javax.swing.JLabel();
         topicLabel = new javax.swing.JLabel();
         keyTextField = new javax.swing.JTextField();
-
-        jScrollPane1.setViewportView(valueEditorPane);
+        jLabel2 = new javax.swing.JLabel();
+        trimCheckBox = new javax.swing.JCheckBox();
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(AddMessagePanel.class, "AddMessagePanel.jLabel1.text")); // NOI18N
 
@@ -100,6 +113,11 @@ public class AddMessagePanel extends javax.swing.JPanel {
         keyTextField.setText(org.openide.util.NbBundle.getMessage(AddMessagePanel.class, "AddMessagePanel.keyTextField.text")); // NOI18N
         keyTextField.setToolTipText(org.openide.util.NbBundle.getMessage(AddMessagePanel.class, "AddMessagePanel.keyTextField.toolTipText")); // NOI18N
 
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel2, org.openide.util.NbBundle.getMessage(AddMessagePanel.class, "AddMessagePanel.jLabel2.text")); // NOI18N
+
+        trimCheckBox.setSelected(true);
+        org.openide.awt.Mnemonics.setLocalizedText(trimCheckBox, org.openide.util.NbBundle.getMessage(AddMessagePanel.class, "AddMessagePanel.trimCheckBox.text")); // NOI18N
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -107,13 +125,16 @@ public class AddMessagePanel extends javax.swing.JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel1)
+                    .addComponent(jLabel2))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(keyTextField)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 445, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel1)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(topicLabel)
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(trimCheckBox)
+                            .addComponent(topicLabel))
+                        .addGap(0, 226, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -123,20 +144,22 @@ public class AddMessagePanel extends javax.swing.JPanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel1)
                     .addComponent(topicLabel))
-                .addGap(18, 18, 18)
-                .addComponent(keyTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 264, Short.MAX_VALUE)
-                .addContainerGap())
+                .addGap(21, 21, 21)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(keyTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel2))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(trimCheckBox)
+                .addContainerGap(14, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JTextField keyTextField;
     private javax.swing.JLabel topicLabel;
-    private javax.swing.JEditorPane valueEditorPane;
+    private javax.swing.JCheckBox trimCheckBox;
     // End of variables declaration//GEN-END:variables
 }
