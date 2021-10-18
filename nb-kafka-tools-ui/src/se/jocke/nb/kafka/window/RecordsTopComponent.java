@@ -1,12 +1,20 @@
 package se.jocke.nb.kafka.window;
 
+import com.google.common.base.Optional;
 import java.awt.event.ActionEvent;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Collection;
 import javax.swing.Timer;
 import javax.swing.table.TableModel;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
+import org.openide.cookies.EditorCookie;
+import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil;
+import org.openide.loaders.DataObject;
+import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.windows.TopComponent;
 import org.openide.util.NbBundle.Messages;
@@ -15,6 +23,7 @@ import org.openide.util.lookup.InstanceContent;
 import org.openide.util.lookup.ProxyLookup;
 import se.jocke.nb.kafka.Disposable;
 import se.jocke.nb.kafka.client.NBKafkaConsumer;
+import se.jocke.nb.kafka.client.NBKafkaConsumerRecord;
 import se.jocke.nb.kafka.nodes.topics.KafkaTopic;
 
 /**
@@ -68,6 +77,8 @@ public final class RecordsTopComponent extends TopComponent {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        rowPopupMenu = new javax.swing.JPopupMenu();
+        openInEditorMenuItem = new javax.swing.JMenuItem();
         jToolBar1 = new javax.swing.JToolBar();
         addButton = new javax.swing.JButton();
         stopButton = new javax.swing.JButton();
@@ -86,6 +97,15 @@ public final class RecordsTopComponent extends TopComponent {
         jScrollPane1 = new javax.swing.JScrollPane();
         recordTable = new javax.swing.JTable();
 
+        org.openide.awt.Mnemonics.setLocalizedText(openInEditorMenuItem, org.openide.util.NbBundle.getMessage(RecordsTopComponent.class, "RecordsTopComponent.openInEditorMenuItem.text")); // NOI18N
+        openInEditorMenuItem.setToolTipText(org.openide.util.NbBundle.getMessage(RecordsTopComponent.class, "RecordsTopComponent.openInEditorMenuItem.toolTipText")); // NOI18N
+        openInEditorMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                openInEditorMenuItemActionPerformed(evt);
+            }
+        });
+        rowPopupMenu.add(openInEditorMenuItem);
+
         jToolBar1.setRollover(true);
         jToolBar1.setPreferredSize(new java.awt.Dimension(40, 40));
 
@@ -93,7 +113,6 @@ public final class RecordsTopComponent extends TopComponent {
         addButton.setFocusable(false);
         addButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         addButton.setIconTextGap(0);
-        addButton.setLabel(org.openide.util.NbBundle.getMessage(RecordsTopComponent.class, "RecordsTopComponent.addButton.label")); // NOI18N
         addButton.setMaximumSize(new java.awt.Dimension(36, 36));
         addButton.setMinimumSize(new java.awt.Dimension(36, 36));
         addButton.setPreferredSize(new java.awt.Dimension(36, 36));
@@ -174,6 +193,7 @@ public final class RecordsTopComponent extends TopComponent {
 
         recordTable.setModel(new RecordTableModel());
         recordTable.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_LAST_COLUMN);
+        recordTable.setComponentPopupMenu(rowPopupMenu);
         jScrollPane1.setViewportView(recordTable);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
@@ -230,8 +250,29 @@ public final class RecordsTopComponent extends TopComponent {
     }//GEN-LAST:event_rateSpinnerStateChanged
 
     private void refreshButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshButtonActionPerformed
-        showTopic(getLookup().lookup(KafkaTopic.class));
+        initResources(getLookup().lookup(KafkaTopic.class));
     }//GEN-LAST:event_refreshButtonActionPerformed
+
+    private void openInEditorMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openInEditorMenuItemActionPerformed
+        int selectedRow = recordTable.getSelectedRow();
+        if (selectedRow > 0) {
+            try {
+                RecordTableModel model = (RecordTableModel) recordTable.getModel();
+                NBKafkaConsumerRecord record = model.getRecord(selectedRow);
+                String name = record.getKey() != null ? record.getKey() : Long.toString(record.getTimestamp());
+                FileObject fob = FileUtil.createMemoryFileSystem().getRoot().createData(name, "json");
+                try (OutputStream outputStream = fob.getOutputStream()) {
+                    outputStream.write(record.getValue().getBytes());
+                    outputStream.flush();
+                }
+                DataObject dob = DataObject.find(fob);
+                EditorCookie ed = dob.getLookup().lookup(EditorCookie.class);
+                ed.open();
+            } catch (IOException ex) {
+                Exceptions.printStackTrace(ex);
+            }
+        }
+    }//GEN-LAST:event_openInEditorMenuItemActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addButton;
@@ -244,10 +285,12 @@ public final class RecordsTopComponent extends TopComponent {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JComboBox<String> offsetResetComboBox;
+    private javax.swing.JMenuItem openInEditorMenuItem;
     private javax.swing.JSpinner rateSpinner;
     private javax.swing.JLabel recordCountLable;
     private javax.swing.JTable recordTable;
     private javax.swing.JButton refreshButton;
+    private javax.swing.JPopupMenu rowPopupMenu;
     private javax.swing.JButton runButton;
     private javax.swing.JLabel statusLabel;
     private javax.swing.JButton stopButton;
@@ -273,37 +316,38 @@ public final class RecordsTopComponent extends TopComponent {
     }
 
     public void showTopic(KafkaTopic topic) {
+        setDisplayName(topic.getName());
+        initResources(topic);
+        open();
+    }
 
+    private void initResources(KafkaTopic topic) {
         closeResources();
 
         content.add(topic);
 
-        setDisplayName(topic.getName());
-
         RecordTableModel tableModel = new RecordTableModel();
 
         recordTable.setModel(tableModel);
-        
+
         NBKafkaConsumer.Builder builder = new NBKafkaConsumer.Builder()
                 .observer(tableModel::onRecord)
                 .topic(topic)
                 .rate((Double) rateSpinner.getValue());
-        
+
         if ("earliest".equalsIgnoreCase((String) offsetResetComboBox.getSelectedItem())) {
             builder.earliest();
         }
-        
+
         content.add(builder.build().start());
 
-        open();
-        
         Timer t = new Timer(500, this::updateRecordCountLabel);
-        
+
         content.add((Disposable) t::stop);
-        
+
         t.start();
     }
-    
+
     private void updateRecordCountLabel(ActionEvent e) {
         var consumer = getLookup().lookup(NBKafkaConsumer.class);
         if (consumer != null) {

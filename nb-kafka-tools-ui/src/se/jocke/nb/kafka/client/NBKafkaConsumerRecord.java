@@ -5,7 +5,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 
 public class NBKafkaConsumerRecord {
 
-    private final Object key;
+    private final String key;
 
     private final String value;
 
@@ -17,7 +17,7 @@ public class NBKafkaConsumerRecord {
 
     private final int hash;
 
-    public NBKafkaConsumerRecord(Object key, String value, int partition, long timestamp, long offset) {
+    public NBKafkaConsumerRecord(String key, String value, int partition, long timestamp, long offset) {
         this.key = key;
         this.value = value;
         this.partition = partition;
@@ -26,7 +26,7 @@ public class NBKafkaConsumerRecord {
         this.hash = computeHash();
     }
 
-    public Object getKey() {
+    public String getKey() {
         return key;
     }
 
@@ -93,5 +93,10 @@ public class NBKafkaConsumerRecord {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return "NBKafkaConsumerRecord{" + "key=" + key + ", value=" + value + ", partition=" + partition + ", timestamp=" + timestamp + ", offset=" + offset + ", hash=" + hash + '}';
     }
 }

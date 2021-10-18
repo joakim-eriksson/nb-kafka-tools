@@ -1,5 +1,6 @@
 package se.jocke.nb.kafka.window;
 
+import com.google.common.base.Optional;
 import java.awt.EventQueue;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -76,6 +77,11 @@ public class RecordTableModel extends AbstractTableModel {
     public String getColumnName(int column) {
         return columns.get(column).name();
     }
+    
+    public NBKafkaConsumerRecord getRecord(int selectedRow) {
+        return records.get(selectedRow);
+    }
+
 
     public void onRecord(NBKafkaConsumerRecord record) {
         EventQueue.invokeLater(() -> {

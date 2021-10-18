@@ -17,6 +17,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
@@ -39,6 +42,8 @@ public class NBKafkaConsumer implements Disposable {
     private final AtomicBoolean started = new AtomicBoolean(false);
     private final AtomicBoolean running = new AtomicBoolean(true);
     private final AtomicBoolean shutdown = new AtomicBoolean(false);
+    private final Lock lock = new ReentrantLock();
+    private final Condition waitCondition = lock.newCondition();
 
     private final AtomicInteger consumedCount = new AtomicInteger();
 
@@ -47,7 +52,7 @@ public class NBKafkaConsumer implements Disposable {
     private final Consumer<NBKafkaConsumerRecord> observer;
 
     private final RateLimiter limit = RateLimiter.create(1);
-    
+
     private final Map<String, Object> configProps;
 
     public NBKafkaConsumer(KafkaTopic topic,
@@ -69,7 +74,7 @@ public class NBKafkaConsumer implements Disposable {
         configProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         configProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         configProps.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, Boolean.FALSE);
-        
+
         this.executorService = Executors.newSingleThreadExecutor();
         this.topics = Collections.singletonList(topic);
         this.observer = observer;
@@ -83,10 +88,10 @@ public class NBKafkaConsumer implements Disposable {
                     Set<String> topicNames = topics.stream().map(KafkaTopic::getName).collect(toSet());
                     consumer.subscribe(topicNames);
                     while (!shutdown.get()) {
-                        limit.acquire();
                         while (running.get()) {
                             consumer.poll(Duration.of(100, ChronoUnit.MILLIS)).forEach(this::publish);
                         }
+                        limit.acquire();
                     }
                 }
             });
@@ -95,6 +100,13 @@ public class NBKafkaConsumer implements Disposable {
     }
 
     private void publish(ConsumerRecord<String, String> message) {
+
+        runWithLock(() -> {
+            while (!running.get() && !shutdown.get()) {
+                waitCondition.awaitUninterruptibly();
+            }
+        });
+
         NBKafkaConsumerRecord record = NBKafkaConsumerRecord.of(message);
         consumedCount.incrementAndGet();
 
@@ -113,17 +125,35 @@ public class NBKafkaConsumer implements Disposable {
 
     @Override
     public void dispose() {
-        shutdown.set(true);
-        running.set(false);
-        executorService.shutdown();
+        runWithLock(() -> {
+            shutdown.set(true);
+            running.set(false);
+            executorService.shutdown();
+            waitCondition.signalAll();
+        });
     }
 
     public void stop() {
-        running.set(false);
+        runWithLock(() -> {
+            running.set(false);
+            waitCondition.signalAll();
+        });
     }
 
     public void restart() {
-        running.set(true);
+        runWithLock(() -> {
+            running.set(true);
+            waitCondition.signalAll();
+        });
+    }
+
+    private void runWithLock(Runnable r) {
+        lock.lock();
+        try {
+            r.run();
+        } finally {
+            lock.unlock();
+        }
     }
 
     public final void setRate(double permitsPerSecond) {
