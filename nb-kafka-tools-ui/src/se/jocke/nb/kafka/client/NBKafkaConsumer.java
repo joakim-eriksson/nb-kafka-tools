@@ -47,7 +47,7 @@ public class NBKafkaConsumer implements Disposable {
 
     private final AtomicInteger consumedCount = new AtomicInteger();
 
-    private final Set<Predicate<NBKafkaConsumerRecord>> predicates;
+    private final Predicate<NBKafkaConsumerRecord> predicate;
 
     private final Consumer<NBKafkaConsumerRecord> observer;
 
@@ -57,10 +57,10 @@ public class NBKafkaConsumer implements Disposable {
 
     public NBKafkaConsumer(KafkaTopic topic,
             Consumer<NBKafkaConsumerRecord> observer,
-            Set<Predicate<NBKafkaConsumerRecord>> predicates,
+            Predicate<NBKafkaConsumerRecord> predicates,
             Map<String, String> props,
             double rate) {
-        this.predicates = predicates;
+        this.predicate = predicates;
 
         if (!KafkaPreferences.isValid()) {
             throw new IllegalStateException("Invalid settings");
@@ -110,11 +110,7 @@ public class NBKafkaConsumer implements Disposable {
         NBKafkaConsumerRecord record = NBKafkaConsumerRecord.of(message);
         consumedCount.incrementAndGet();
 
-        boolean isNotFiltered = predicates.stream()
-                .map(predicate -> predicate.test(record))
-                .filter(filter -> !filter)
-                .findFirst()
-                .isEmpty();
+        boolean isNotFiltered = predicate.test(record);
 
         if (isNotFiltered) {
             messages.offer(record);
@@ -168,7 +164,7 @@ public class NBKafkaConsumer implements Disposable {
 
         private KafkaTopic topic;
         private Consumer<NBKafkaConsumerRecord> observer;
-        private Set<Predicate<NBKafkaConsumerRecord>> predicates = Collections.emptySet();
+        private Predicate<NBKafkaConsumerRecord> predicate = (record) -> true;
         private final Map<String, String> props = new HashMap<>();
         private double rate = 1;
 
@@ -185,8 +181,8 @@ public class NBKafkaConsumer implements Disposable {
             return this;
         }
 
-        public Builder predicates(Set<java.util.function.Predicate<se.jocke.nb.kafka.client.NBKafkaConsumerRecord>> predicates) {
-            this.predicates = predicates;
+        public Builder predicate(Predicate<NBKafkaConsumerRecord> predicate) {
+            this.predicate = predicate;
             return this;
         }
 
@@ -208,7 +204,7 @@ public class NBKafkaConsumer implements Disposable {
         public NBKafkaConsumer build() {
             Objects.requireNonNull(topic, "Topic must not be null");
             Objects.requireNonNull(observer, "Topic must not be null");
-            return new NBKafkaConsumer(topic, observer, predicates, props, rate);
+            return new NBKafkaConsumer(topic, observer, predicate, props, rate);
         }
     }
 }

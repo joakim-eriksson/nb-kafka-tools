@@ -28,7 +28,7 @@ public final class DataFormInputVerifier<C extends JComponent, T> extends InputV
 
     @Override
     public boolean verify(JComponent component) {
-        
+
         T fromString;
         try {
             fromString = getValue();
@@ -38,6 +38,11 @@ public final class DataFormInputVerifier<C extends JComponent, T> extends InputV
         }
         failedDisplay.clear();
         return fromString != null;
+    }
+
+    public DataFormInputVerifier<C, T> onChange(Runnable callback) {
+        this.inputAdapter.addChangeListener(e -> callback.run());
+        return this;
     }
 
     public T getValue() {

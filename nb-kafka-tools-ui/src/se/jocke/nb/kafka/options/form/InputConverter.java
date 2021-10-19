@@ -6,23 +6,12 @@ package se.jocke.nb.kafka.options.form;
  */
 public interface InputConverter<T> {
 
-    public static final InputConverter<String> STRING_CONVERTER = new InputConverter<String>() {
-
-        @Override
-        public String toString(String value) throws IllegalArgumentException {
-            return value;
+    public static final InputConverter<String> REQUIRED_STRING_CONVERTER = (String value) -> {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException("Required value");
         }
-
-        @Override
-        public String fromString(String value) {
-            if (value == null || value.isBlank()) {
-                throw new IllegalArgumentException("Required value");
-            }
-            return value;
-        }
+        return value;
     };
-
-    String toString(T value) throws IllegalArgumentException;
 
     T fromString(String value);
 

@@ -4,11 +4,11 @@ import se.jocke.nb.kafka.options.form.DataFormInputVerifier;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import static java.util.stream.Collectors.toMap;
-import static se.jocke.nb.kafka.options.form.InputConverter.STRING_CONVERTER;
 import se.jocke.nb.kafka.options.form.LabelValidationFailedDisplay;
 import se.jocke.nb.kafka.options.form.TextFieldInputAdapter;
 import se.jocke.nb.kafka.preferences.KafkaPreferences;
 import static se.jocke.nb.kafka.preferences.ManagedAdminClientConfig.BOOTSTRAP_SERVERS;
+import static se.jocke.nb.kafka.options.form.InputConverter.REQUIRED_STRING_CONVERTER;
 
 final class KafkaPanel extends javax.swing.JPanel {
 
@@ -19,10 +19,7 @@ final class KafkaPanel extends javax.swing.JPanel {
     KafkaPanel(KafkaOptionsPanelController controller) {
         this.controller = controller;
         initComponents();
-        verifiers.put(BOOTSTRAP_SERVERS.getKey(), new DataFormInputVerifier<>(
-                new TextFieldInputAdapter(bootstrapServersTF),
-                 STRING_CONVERTER,
-                new LabelValidationFailedDisplay(bootstrapFailedLable))
+        verifiers.put(BOOTSTRAP_SERVERS.getKey(), new DataFormInputVerifier<>(new TextFieldInputAdapter(bootstrapServersTF), REQUIRED_STRING_CONVERTER, new LabelValidationFailedDisplay(bootstrapFailedLabel))
         );
     }
 
@@ -36,7 +33,7 @@ final class KafkaPanel extends javax.swing.JPanel {
 
         jLabel1 = new javax.swing.JLabel();
         bootstrapServersTF = new javax.swing.JTextField();
-        bootstrapFailedLable = new javax.swing.JLabel();
+        bootstrapFailedLabel = new javax.swing.JLabel();
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(KafkaPanel.class, "KafkaPanel.jLabel1.text")); // NOI18N
 
@@ -47,11 +44,11 @@ final class KafkaPanel extends javax.swing.JPanel {
             }
         });
 
-        bootstrapFailedLable.setForeground(java.awt.Color.red);
-        bootstrapFailedLable.setLabelFor(bootstrapServersTF);
-        org.openide.awt.Mnemonics.setLocalizedText(bootstrapFailedLable, org.openide.util.NbBundle.getMessage(KafkaPanel.class, "KafkaPanel.bootstrapFailedLable.text")); // NOI18N
-        bootstrapFailedLable.setToolTipText(org.openide.util.NbBundle.getMessage(KafkaPanel.class, "KafkaPanel.bootstrapFailedLable.toolTipText")); // NOI18N
-        bootstrapFailedLable.setPreferredSize(null);
+        bootstrapFailedLabel.setForeground(java.awt.Color.red);
+        bootstrapFailedLabel.setLabelFor(bootstrapServersTF);
+        org.openide.awt.Mnemonics.setLocalizedText(bootstrapFailedLabel, org.openide.util.NbBundle.getMessage(KafkaPanel.class, "KafkaPanel.bootstrapFailedLabel.text")); // NOI18N
+        bootstrapFailedLabel.setToolTipText(org.openide.util.NbBundle.getMessage(KafkaPanel.class, "KafkaPanel.bootstrapFailedLabel.toolTipText")); // NOI18N
+        bootstrapFailedLabel.setPreferredSize(null);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -63,14 +60,14 @@ final class KafkaPanel extends javax.swing.JPanel {
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(bootstrapServersTF, javax.swing.GroupLayout.DEFAULT_SIZE, 306, Short.MAX_VALUE)
-                    .addComponent(bootstrapFailedLable, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(bootstrapFailedLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(bootstrapFailedLable, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(bootstrapFailedLabel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel1)
@@ -102,7 +99,7 @@ final class KafkaPanel extends javax.swing.JPanel {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel bootstrapFailedLable;
+    private javax.swing.JLabel bootstrapFailedLabel;
     private javax.swing.JTextField bootstrapServersTF;
     private javax.swing.JLabel jLabel1;
     // End of variables declaration//GEN-END:variables
