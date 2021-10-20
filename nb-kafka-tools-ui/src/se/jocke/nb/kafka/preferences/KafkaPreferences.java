@@ -4,6 +4,7 @@ import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import static java.util.stream.Collectors.toMap;
@@ -36,6 +37,7 @@ public final class KafkaPreferences {
 
     public static boolean isValid() {
         return !Arrays.stream(ManagedAdminClientConfig.values())
+                .filter(ManagedAdminClientConfig::isRequired)
                 .anyMatch(c -> getOrEmpty(c.getKey()).trim().isEmpty());
     }
 
@@ -46,4 +48,14 @@ public final class KafkaPreferences {
     private static String getOrEmpty(String prop) {
         return PREFS_FOR_MODULE.get(prop, "");
     }
+
+    public static boolean getBoolean(String string, boolean bln) {
+        return PREFS_FOR_MODULE.getBoolean(string, bln);
+    }
+
+    public static String get(String key) {
+        String toGet = PREFS_FOR_MODULE.get(key, null);
+        Objects.requireNonNull(toGet, key + " required");
+        return toGet;
+    }   
 }

@@ -11,6 +11,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.openide.util.lookup.ServiceProvider;
+import se.jocke.nb.kafka.gcp.GCPConnectionConfig;
 import se.jocke.nb.kafka.preferences.KafkaPreferences;
 
 @ServiceProvider(service = NBKafkaProducer.class)
@@ -24,6 +25,11 @@ public final class NBKafkaProducerImpl implements NBKafkaProducer {
         configProps.put(ProducerConfig.CLIENT_ID_CONFIG, UUID.randomUUID().toString());
         configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+
+        if (GCPConnectionConfig.isEnabled()) {
+            configProps.putAll(GCPConnectionConfig.getConfig());
+        }
+
         this.producer = new KafkaProducer<>(configProps);
     }
 

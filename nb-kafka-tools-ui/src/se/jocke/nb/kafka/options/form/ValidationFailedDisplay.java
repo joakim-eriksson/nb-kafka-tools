@@ -10,4 +10,13 @@ public interface ValidationFailedDisplay {
 
     void clear();
 
+    static final ValidationFailedDisplay NO_FAIL_DISPLAY = new ValidationFailedDisplay() {
+        @Override
+        public void show(String text) {
+        }
+
+        @Override
+        public void clear() {
+        }
+    };
 }

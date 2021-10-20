@@ -3,8 +3,8 @@ package se.jocke.nb.kafka.options.form;
 import java.lang.invoke.MethodHandles;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
+import javax.swing.text.JTextComponent;
 
 /**
  *
@@ -14,9 +14,9 @@ public final class TextFieldInputAdapter extends InputAdapter<DocumentEvent> {
 
     private static final Logger LOG = Logger.getLogger(MethodHandles.lookup().lookupClass().getName());
     
-    private final JTextField textField;
+    private final JTextComponent textField;
 
-    public TextFieldInputAdapter(JTextField textField) {
+    public TextFieldInputAdapter(JTextComponent textField) {
         this.textField = textField;
         textField.getDocument().addDocumentListener(new DocumentListenerAdapter() {
             @Override

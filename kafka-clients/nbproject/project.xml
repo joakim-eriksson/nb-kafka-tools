@@ -71,8 +71,20 @@
                 <package>org.apache.kafka.server.quota</package>
             </public-packages>
             <class-path-extension>
+                <runtime-relative-path>ext/zstd-jni-1.4.9-1.jar</runtime-relative-path>
+                <binary-origin>release/modules/ext/zstd-jni-1.4.9-1.jar</binary-origin>
+            </class-path-extension>
+            <class-path-extension>
+                <runtime-relative-path>ext/lz4-java-1.7.1.jar</runtime-relative-path>
+                <binary-origin>release/modules/ext/lz4-java-1.7.1.jar</binary-origin>
+            </class-path-extension>
+            <class-path-extension>
                 <runtime-relative-path>ext/kafka-clients-2.7.0.jar</runtime-relative-path>
                 <binary-origin>release/modules/ext/kafka-clients-2.7.0.jar</binary-origin>
+            </class-path-extension>
+            <class-path-extension>
+                <runtime-relative-path>ext/snappy-java-1.1.8.1.jar</runtime-relative-path>
+                <binary-origin>release/modules/ext/snappy-java-1.1.8.1.jar</binary-origin>
             </class-path-extension>
         </data>
     </configuration>

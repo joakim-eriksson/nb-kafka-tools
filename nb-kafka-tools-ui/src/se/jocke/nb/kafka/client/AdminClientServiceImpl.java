@@ -20,6 +20,7 @@ import org.apache.kafka.clients.admin.Config;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.common.config.ConfigResource;
 import org.openide.util.lookup.ServiceProvider;
+import se.jocke.nb.kafka.gcp.GCPConnectionConfig;
 import se.jocke.nb.kafka.nodes.topics.KafkaCreateTopic;
 import se.jocke.nb.kafka.preferences.KafkaPreferences;
 import se.jocke.nb.kafka.nodes.topics.KafkaTopic;
@@ -42,6 +43,11 @@ public final class AdminClientServiceImpl implements Closeable, AdminClientServi
         Map<String, String> prefs = KafkaPreferences.read();
         Map<String, Object> conf = new HashMap<>(prefs);
         conf.put(AdminClientConfig.CLIENT_ID_CONFIG, UUID.randomUUID().toString());
+        
+        if (GCPConnectionConfig.isEnabled()) {
+            conf.putAll(GCPConnectionConfig.getConfig());
+        }
+        
         this.adminClient = AdminClient.create(conf);
     }
 

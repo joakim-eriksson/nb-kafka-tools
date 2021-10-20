@@ -12,6 +12,13 @@ public interface InputConverter<T> {
         }
         return value;
     };
+    
+    public static final InputConverter<String> STRING_CONVERTER = (String value) -> {
+        if (value == null) {
+            return "";
+        }
+        return value;
+    };
 
     T fromString(String value);
 

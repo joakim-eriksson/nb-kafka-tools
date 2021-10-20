@@ -2,6 +2,8 @@ package se.jocke.nb.kafka.client;
 
 import com.google.common.util.concurrent.RateLimiter;
 import java.lang.invoke.MethodHandles;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
@@ -28,7 +30,9 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.openide.util.Exceptions;
 import se.jocke.nb.kafka.Disposable;
+import se.jocke.nb.kafka.gcp.GCPConnectionConfig;
 import se.jocke.nb.kafka.nodes.topics.KafkaTopic;
 import se.jocke.nb.kafka.preferences.KafkaPreferences;
 
@@ -37,7 +41,7 @@ public class NBKafkaConsumer implements Disposable {
     private static final Logger LOG = Logger.getLogger(MethodHandles.lookup().lookupClass().getName());
 
     private final Collection<KafkaTopic> topics;
-    private final BlockingQueue<NBKafkaConsumerRecord> messages = new ArrayBlockingQueue<>(5000);
+    private final BlockingQueue<NBKafkaConsumerRecord> messages = new ArrayBlockingQueue<>(500);
     private final ExecutorService executorService;
     private final AtomicBoolean started = new AtomicBoolean(false);
     private final AtomicBoolean running = new AtomicBoolean(true);
@@ -70,15 +74,28 @@ public class NBKafkaConsumer implements Disposable {
         this.configProps = new HashMap<>(prefs);
         configProps.putAll(props);
         configProps.put(ConsumerConfig.CLIENT_ID_CONFIG, UUID.randomUUID().toString());
-        configProps.put(ConsumerConfig.GROUP_ID_CONFIG, UUID.randomUUID().toString());
+        configProps.put(ConsumerConfig.GROUP_ID_CONFIG, getGroupId());
         configProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         configProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         configProps.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, Boolean.FALSE);
+
+        if (GCPConnectionConfig.isEnabled()) {
+            configProps.putAll(GCPConnectionConfig.getConfig());
+        }
 
         this.executorService = Executors.newSingleThreadExecutor();
         this.topics = Collections.singletonList(topic);
         this.observer = observer;
         this.limit.setRate(rate);
+    }
+
+    private static String getGroupId() {
+        try {
+            return InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException ex) {
+            Exceptions.printStackTrace(ex);
+            return UUID.randomUUID().toString();
+        }
     }
 
     public NBKafkaConsumer start() {
@@ -93,6 +110,8 @@ public class NBKafkaConsumer implements Disposable {
                         }
                         limit.acquire();
                     }
+                } catch (Exception e) {
+                    Exceptions.printStackTrace(e);
                 }
             });
         }

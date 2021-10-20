@@ -87,6 +87,8 @@ public final class RecordsTopComponent extends TopComponent {
         lookupResult.addLookupListener((ev) -> {
             System.out.println("We have new filters");
         });
+        //TODO change background on odd or even and render timestamp as date 
+        //recordTable.setDefaultRenderer(Object.class, renderer);
     }
 
     /**
@@ -228,6 +230,7 @@ public final class RecordsTopComponent extends TopComponent {
         });
         jToolBar1.add(rateSpinner);
 
+        recordTable.setAutoCreateRowSorter(true);
         recordTable.setModel(new RecordTableModel());
         recordTable.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_LAST_COLUMN);
         recordTable.setComponentPopupMenu(rowPopupMenu);
