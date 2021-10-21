@@ -1,13 +1,9 @@
 package se.jocke.nb.kafka.nodes.root;
 
-import java.awt.event.ActionEvent;
-import java.lang.invoke.MethodHandles;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import static java.util.stream.Collectors.toMap;
 import javax.swing.Action;
 import org.openide.*;
@@ -20,6 +16,7 @@ import se.jocke.nb.kafka.nodes.topics.KafkaCreateTopic;
 import se.jocke.nb.kafka.nodes.topics.TopicEditor;
 import static se.jocke.nb.kafka.action.Actions.actions;
 import static se.jocke.nb.kafka.action.Actions.action;
+import static se.jocke.nb.kafka.action.ActionCommanDispatcher.*;
 import se.jocke.nb.kafka.client.AdminClientService;
 import se.jocke.nb.kafka.nodes.topics.KafkaTopic;
 import se.jocke.nb.kafka.window.RecordsTopComponent;
@@ -30,8 +27,6 @@ import static se.jocke.nb.kafka.window.RecordsTopComponent.RECORDS_TOP_COMPONENT
  * @author jocke
  */
 public class KafkaServiceRootNode extends AbstractNode {
-
-    private static final Logger LOG = Logger.getLogger(MethodHandles.lookup().lookupClass().getName());
 
     private final KafkaTopicChildFactory kafkaTopicChildFactory;
 
@@ -48,23 +43,8 @@ public class KafkaServiceRootNode extends AbstractNode {
 
     public void showTopicEditor() {
         TopicEditor topicEditor = new TopicEditor();
-        DialogDescriptor descriptor = new DialogDescriptor(topicEditor, "Create", true, (ActionEvent event) -> onCreateTopicDialogDescriptorAction(event, topicEditor));
+        DialogDescriptor descriptor = new DialogDescriptor(topicEditor, "Create", true, onAction(ok(e -> onCreateTopicDialogDescriptorActionOK(topicEditor))));
         DialogDisplayer.getDefault().notifyLater(descriptor);
-    }
-
-    public void onCreateTopicDialogDescriptorAction(ActionEvent event, TopicEditor topicEditor) {
-        LOG.log(Level.INFO, "Action triggered with command {0}", event.getActionCommand());
-
-        if ("OK".equalsIgnoreCase(event.getActionCommand())) {
-
-            onCreateTopicDialogDescriptorActionOK(topicEditor);
-
-        } else if ("Cancel".equalsIgnoreCase(event.getActionCommand())) {
-            LOG.log(Level.INFO, "Action Cancel triggered");
-
-        } else {
-            throw new AssertionError("Unknown command " + event.getActionCommand());
-        }
     }
 
     private void onCreateTopicDialogDescriptorActionOK(TopicEditor topicEditor) {
@@ -92,13 +72,12 @@ public class KafkaServiceRootNode extends AbstractNode {
 
     public void viewTopic() {
         ViewTopicPanel viewTopicPanel = new ViewTopicPanel();
-        DialogDescriptor descriptor = new DialogDescriptor(viewTopicPanel, "View topic", true, (ActionEvent event) -> {
-            if ("OK".equalsIgnoreCase(event.getActionCommand())) {
-                KafkaTopic kafkaTopic = new KafkaTopic(viewTopicPanel.getTopicName(), Optional.empty());
-                RecordsTopComponent component = (RecordsTopComponent) WindowManager.getDefault().findTopComponent(RECORDS_TOP_COMPONENT_ID);
-                component.showTopic(kafkaTopic);
-            }
-        });
+        DialogDescriptor descriptor = new DialogDescriptor(viewTopicPanel, "View Topic", true,
+                onAction(ok(event -> {
+                    KafkaTopic kafkaTopic = new KafkaTopic(viewTopicPanel.getTopicName(), Optional.empty());
+                    RecordsTopComponent component = (RecordsTopComponent) WindowManager.getDefault().findTopComponent(RECORDS_TOP_COMPONENT_ID);
+                    component.showTopic(kafkaTopic);
+                })));
         DialogDisplayer.getDefault().notifyLater(descriptor);
     }
 

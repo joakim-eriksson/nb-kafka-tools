@@ -6,13 +6,13 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Predicate;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import static java.util.stream.Collectors.toSet;
 import javax.swing.JComponent;
 import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
 import org.openide.util.lookup.InstanceContent;
+import static se.jocke.nb.kafka.action.ActionCommanDispatcher.*;
 import se.jocke.nb.kafka.client.NBKafkaConsumerRecord;
 import se.jocke.nb.kafka.options.form.DataFormInputVerifier;
 import se.jocke.nb.kafka.options.form.LabelValidationFailedDisplay;
@@ -40,7 +40,7 @@ public class FilterPanel extends javax.swing.JPanel {
     public FilterPanel(InstanceContent content) {
         initComponents();
         this.content = content;
-        this.descriptor = new DialogDescriptor(this, "Create filter", true, (actionEvent) -> onDialogDescriptorAction(actionEvent));
+        this.descriptor = new DialogDescriptor(this, "Create filter", true, onAction(ok(this::onDialogDescriptorActionOk)));
         this.verifiers = new HashSet<>();
 
         this.verifier = () -> {
@@ -61,15 +61,8 @@ public class FilterPanel extends javax.swing.JPanel {
         DialogDisplayer.getDefault().notifyLater(descriptor);
     }
 
-    public void onDialogDescriptorAction(ActionEvent event) {
-        LOG.log(Level.INFO, "Action triggered with command {0}", event.getActionCommand());
-
-        if ("OK".equalsIgnoreCase(event.getActionCommand())) {
-            content.add(Filters.and(verifiers.stream().map(DataFormInputVerifier::getValue).collect(toSet())));
-        } else if ("Cancel".equalsIgnoreCase(event.getActionCommand())) {
-            LOG.log(Level.INFO, "Action Cancel triggered");
-        }
-
+    public void onDialogDescriptorActionOk(ActionEvent event) {
+        content.add(Filters.and(verifiers.stream().map(DataFormInputVerifier::getValue).collect(toSet())));
     }
 
     /**

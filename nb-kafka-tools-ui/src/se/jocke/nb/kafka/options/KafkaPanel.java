@@ -80,7 +80,10 @@ final class KafkaPanel extends javax.swing.JPanel {
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel3, org.openide.util.NbBundle.getMessage(KafkaPanel.class, "KafkaPanel.jLabel3.text")); // NOI18N
 
+        jScrollPane1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+
         encodedKeyTextArea.setColumns(20);
+        encodedKeyTextArea.setLineWrap(true);
         encodedKeyTextArea.setRows(5);
         jScrollPane1.setViewportView(encodedKeyTextArea);
 

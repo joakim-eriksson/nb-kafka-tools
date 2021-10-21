@@ -25,6 +25,7 @@ import se.jocke.nb.kafka.client.NBKafkaProducer;
 import se.jocke.nb.kafka.nodes.topics.KafkaTopic;
 import static se.jocke.nb.kafka.window.RecordsTopComponent.A_NEW;
 import static se.jocke.nb.kafka.window.RecordsTopComponent.KEYLESS;
+import static se.jocke.nb.kafka.action.ActionCommanDispatcher.*;
 
 /**
  *
@@ -35,7 +36,7 @@ public class AddMessagePanel extends javax.swing.JPanel {
     private static final Logger LOG = Logger.getLogger(MethodHandles.lookup().lookupClass().getName());
 
     private final KafkaTopic topic;
-    
+
     private static final Set<String> NULL_KEYS = Sets.newHashSet(A_NEW, KEYLESS);
 
     public AddMessagePanel(KafkaTopic topic) {
@@ -46,7 +47,9 @@ public class AddMessagePanel extends javax.swing.JPanel {
     }
 
     public void showDialog(FileObject fileObject) {
-        DialogDescriptor descriptor = new DialogDescriptor(this, "Publish record", true, (actionEvent) -> onDialogDescriptorAction(actionEvent, fileObject));
+        DialogDescriptor descriptor = new DialogDescriptor(this, "Publish record", true, onAction(
+                ok(actionEvent -> onDialogDescriptorAction(actionEvent, fileObject))
+        ));
         DialogDisplayer.getDefault().notifyLater(descriptor);
         keyTextField.setText(NULL_KEYS.contains(fileObject.getName()) ? "" : fileObject.getName());
     }
@@ -54,40 +57,34 @@ public class AddMessagePanel extends javax.swing.JPanel {
     public void onDialogDescriptorAction(ActionEvent event, FileObject fileObject) {
         LOG.log(Level.INFO, "Action triggered with command {0}", event.getActionCommand());
 
-        if ("OK".equalsIgnoreCase(event.getActionCommand())) {
+        NBKafkaProducer producer = Lookup.getDefault().lookup(NBKafkaProducer.class);
 
-            NBKafkaProducer producer = Lookup.getDefault().lookup(NBKafkaProducer.class);
+        try {
+            String key = keyTextField.getText().isBlank() ? null : keyTextField.getText();
+            String value = fileObject.asText();
 
-            try {
-                String key = keyTextField.getText().isBlank() ? null : keyTextField.getText();
-                String value = fileObject.asText();
-
-                if (value != null && !value.isBlank()) {
-                    GsonBuilder gsonBuilder = new GsonBuilder();
-                    Gson gson = gsonBuilder.create();
-                    JsonObject jsonObject = new JsonParser().parse(value).getAsJsonObject();
-                    ProducerRecord<String, String> pr = new ProducerRecord<>(topic.getName(), key, trimCheckBox.isSelected() ? gson.toJson(jsonObject) : value);
-                    producer.send(pr, (RecordMetadata rm, Exception ex) -> {
-                        if (ex == null) {
-                            try {
-                                DataObject dob = DataObject.find(fileObject);
-                                EditorCookie ed = dob.getLookup().lookup(EditorCookie.class);
-                                ed.close();
-                            } catch (DataObjectNotFoundException objectNotFoundException) {
-                                Exceptions.printStackTrace(objectNotFoundException);
-                            }
-                        } else {
-                            Exceptions.printStackTrace(ex);
+            if (value != null && !value.isBlank()) {
+                GsonBuilder gsonBuilder = new GsonBuilder();
+                Gson gson = gsonBuilder.create();
+                JsonObject jsonObject = new JsonParser().parse(value).getAsJsonObject();
+                ProducerRecord<String, String> pr = new ProducerRecord<>(topic.getName(), key, trimCheckBox.isSelected() ? gson.toJson(jsonObject) : value);
+                producer.send(pr, (RecordMetadata rm, Exception ex) -> {
+                    if (ex == null) {
+                        try {
+                            DataObject dob = DataObject.find(fileObject);
+                            EditorCookie ed = dob.getLookup().lookup(EditorCookie.class);
+                            ed.close();
+                        } catch (DataObjectNotFoundException objectNotFoundException) {
+                            Exceptions.printStackTrace(objectNotFoundException);
                         }
-                    });
-                }
-
-            } catch (IOException ex) {
-                Exceptions.printStackTrace(ex);
+                    } else {
+                        Exceptions.printStackTrace(ex);
+                    }
+                });
             }
 
-        } else if ("Cancel".equalsIgnoreCase(event.getActionCommand())) {
-            LOG.log(Level.INFO, "Action Cancel triggered");
+        } catch (IOException ex) {
+            Exceptions.printStackTrace(ex);
         }
     }
 
