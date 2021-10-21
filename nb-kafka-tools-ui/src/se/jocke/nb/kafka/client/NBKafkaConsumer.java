@@ -39,7 +39,7 @@ public class NBKafkaConsumer implements Disposable {
     private static final Logger LOG = Logger.getLogger(MethodHandles.lookup().lookupClass().getName());
 
     private final Collection<KafkaTopic> topics;
-    private final BlockingQueue<NBKafkaConsumerRecord> messages = new ArrayBlockingQueue<>(500);
+    private final BlockingQueue<NBKafkaConsumerRecord> messages;
     private final ExecutorService executorService;
     private final AtomicBoolean started = new AtomicBoolean(false);
     private final AtomicBoolean running = new AtomicBoolean(true);
@@ -61,7 +61,8 @@ public class NBKafkaConsumer implements Disposable {
             Consumer<NBKafkaConsumerRecord> observer,
             Predicate<NBKafkaConsumerRecord> predicates,
             Map<String, String> props,
-            double rate) {
+            double rate,
+            int max) {
         this.predicate = predicates;
 
         if (!KafkaPreferences.isValid()) {
@@ -85,6 +86,7 @@ public class NBKafkaConsumer implements Disposable {
         this.topics = Collections.singletonList(topic);
         this.observer = observer;
         this.limit.setRate(rate);
+        this.messages = new ArrayBlockingQueue<>(max);
     }
 
     private static String getGroupId() {
@@ -125,7 +127,11 @@ public class NBKafkaConsumer implements Disposable {
         boolean isNotFiltered = predicate.test(record);
 
         if (isNotFiltered) {
-            messages.offer(record);
+            try {
+                messages.put(record);
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            }
             observer.accept(record);
             limit.acquire();
         }
@@ -179,6 +185,7 @@ public class NBKafkaConsumer implements Disposable {
         private Predicate<NBKafkaConsumerRecord> predicate = (record) -> true;
         private final Map<String, String> props = new HashMap<>();
         private double rate = 1;
+        private int max = 100;
 
         public Builder() {
         }
@@ -213,10 +220,15 @@ public class NBKafkaConsumer implements Disposable {
             return this;
         }
 
+        public Builder max(int max) {
+            this.max = max;
+            return this;
+        }
+
         public NBKafkaConsumer build() {
             Objects.requireNonNull(topic, "Topic must not be null");
             Objects.requireNonNull(observer, "Topic must not be null");
-            return new NBKafkaConsumer(topic, observer, predicate, props, rate);
+            return new NBKafkaConsumer(topic, observer, predicate, props, rate, max);
         }
     }
 }

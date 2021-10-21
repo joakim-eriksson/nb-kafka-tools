@@ -105,10 +105,12 @@ public final class RecordsTopComponent extends TopComponent {
         runButton = new javax.swing.JButton();
         filler3 = new javax.swing.Box.Filler(new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 32767));
         offsetResetComboBox = new javax.swing.JComboBox<>();
-        filler4 = new javax.swing.Box.Filler(new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 32767));
-        filterButton = new javax.swing.JButton();
+        filler4 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(20, 32767));
+        maxRecordsSpinner = new javax.swing.JSpinner();
         refreshButton = new javax.swing.JButton();
+        filterButton = new javax.swing.JButton();
         distinctCheckBox = new javax.swing.JCheckBox();
+        filler6 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767));
         filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 0));
         statusLabel = new javax.swing.JLabel();
         filler5 = new javax.swing.Box.Filler(new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 32767));
@@ -175,16 +177,8 @@ public final class RecordsTopComponent extends TopComponent {
         jToolBar1.add(offsetResetComboBox);
         jToolBar1.add(filler4);
 
-        filterButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/se/jocke/nb/kafka/window/filter.png"))); // NOI18N
-        filterButton.setFocusable(false);
-        filterButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        filterButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        filterButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                filterButtonActionPerformed(evt);
-            }
-        });
-        jToolBar1.add(filterButton);
+        maxRecordsSpinner.setModel(new javax.swing.SpinnerNumberModel(100, 1, 9999, 10));
+        jToolBar1.add(maxRecordsSpinner);
 
         refreshButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/se/jocke/nb/kafka/window/refresh.png"))); // NOI18N
         org.openide.awt.Mnemonics.setLocalizedText(refreshButton, org.openide.util.NbBundle.getMessage(RecordsTopComponent.class, "RecordsTopComponent.refreshButton.text")); // NOI18N
@@ -199,6 +193,17 @@ public final class RecordsTopComponent extends TopComponent {
         });
         jToolBar1.add(refreshButton);
 
+        filterButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/se/jocke/nb/kafka/window/filter.png"))); // NOI18N
+        filterButton.setFocusable(false);
+        filterButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        filterButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        filterButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                filterButtonActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(filterButton);
+
         org.openide.awt.Mnemonics.setLocalizedText(distinctCheckBox, org.openide.util.NbBundle.getMessage(RecordsTopComponent.class, "RecordsTopComponent.distinctCheckBox.text")); // NOI18N
         distinctCheckBox.setFocusable(false);
         distinctCheckBox.setHorizontalTextPosition(javax.swing.SwingConstants.RIGHT);
@@ -209,6 +214,7 @@ public final class RecordsTopComponent extends TopComponent {
             }
         });
         jToolBar1.add(distinctCheckBox);
+        jToolBar1.add(filler6);
         jToolBar1.add(filler1);
 
         org.openide.awt.Mnemonics.setLocalizedText(statusLabel, org.openide.util.NbBundle.getMessage(RecordsTopComponent.class, "RecordsTopComponent.statusLabel.text")); // NOI18N
@@ -358,9 +364,11 @@ public final class RecordsTopComponent extends TopComponent {
     private javax.swing.Box.Filler filler3;
     private javax.swing.Box.Filler filler4;
     private javax.swing.Box.Filler filler5;
+    private javax.swing.Box.Filler filler6;
     private javax.swing.JButton filterButton;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JToolBar jToolBar1;
+    private javax.swing.JSpinner maxRecordsSpinner;
     private javax.swing.JComboBox<String> offsetResetComboBox;
     private javax.swing.JMenuItem openInEditorMenuItem;
     private javax.swing.JSpinner rateSpinner;
@@ -410,7 +418,8 @@ public final class RecordsTopComponent extends TopComponent {
         NBKafkaConsumer.Builder builder = new NBKafkaConsumer.Builder()
                 .observer(tableModel::onRecord)
                 .topic(topic)
-                .rate((Double) rateSpinner.getValue());
+                .rate((Double) rateSpinner.getValue())
+                .max((int) maxRecordsSpinner.getValue());
 
         if ("earliest".equalsIgnoreCase((String) offsetResetComboBox.getSelectedItem())) {
             builder.earliest();
