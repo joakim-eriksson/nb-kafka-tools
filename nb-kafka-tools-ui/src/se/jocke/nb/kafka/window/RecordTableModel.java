@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Set;
 import javax.swing.table.AbstractTableModel;
 import se.jocke.nb.kafka.client.NBKafkaConsumerRecord;
@@ -19,7 +20,11 @@ public class RecordTableModel extends AbstractTableModel {
     private final List<NBKafkaConsumerRecord> distinctRecords;
 
     private boolean distinct = false;
-    
+
+    private boolean slidingWindow = false;
+
+    private int maxRecords = 100;
+
     private static final String YYYY_M_MDD_H_HMMSS = "yyyy-MM-dd HH:mm:ss";
 
     private static final SimpleDateFormat FORMAT = new SimpleDateFormat(YYYY_M_MDD_H_HMMSS);
@@ -76,6 +81,22 @@ public class RecordTableModel extends AbstractTableModel {
         }
     }
 
+    public boolean isSlidingWindow() {
+        return slidingWindow;
+    }
+
+    public void setSlidingWindow(boolean slidingWindow) {
+        this.slidingWindow = slidingWindow;
+    }
+
+    public int getMaxRecords() {
+        return maxRecords;
+    }
+
+    public void setMaxRecords(int maxRecords) {
+        this.maxRecords = maxRecords;
+    }
+
     @Override
     public int getRowCount() {
         return getRecords().size();
@@ -107,10 +128,51 @@ public class RecordTableModel extends AbstractTableModel {
     public void onRecord(NBKafkaConsumerRecord record) {
         EventQueue.invokeLater(() -> {
             records.add(0, record);
-            if (record.getKey() != null && uniqueKeys.add(record.getKey())) {
-                distinctRecords.add(0, record);
+            if (record.getKey() != null) {
+                if (uniqueKeys.add(record.getKey())) {
+                    distinctRecords.add(0, record);
+                } else {
+                    removeRecordWithSameKey(record);
+                    distinctRecords.add(0, record);
+                }
             }
-            this.fireTableRowsInserted(0, 0);
+
+            fireTableRowsInserted(0, 0);
+            if (slidingWindow) {
+                moveSlidingWindow();
+            }
         });
+    }
+
+    private void moveSlidingWindow() {
+        if (removeOverMax(records) || removeOverMax(distinctRecords)) {
+            fireTableRowsDeleted(getRowCount(), getRowCount());
+        }
+    }
+
+    private boolean removeOverMax(List<NBKafkaConsumerRecord> consumerRecords) {
+        if (consumerRecords.size() > maxRecords) {
+            removeLast(consumerRecords);
+            return true;
+        }
+        return false;
+    }
+
+    private void removeRecordWithSameKey(NBKafkaConsumerRecord record) {
+        for (ListIterator<NBKafkaConsumerRecord> it = distinctRecords.listIterator(); it.hasNext();) {
+            int index = it.nextIndex();
+            NBKafkaConsumerRecord rec = it.next();
+            if (record.getKey().equals(rec.getKey())) {
+                it.remove();
+                if (distinct) {
+                    fireTableRowsDeleted(index, index);
+                }
+                break;
+            }
+        }
+    }
+
+    private void removeLast(List<NBKafkaConsumerRecord> list) {
+        list.remove(list.size() - 1);
     }
 }

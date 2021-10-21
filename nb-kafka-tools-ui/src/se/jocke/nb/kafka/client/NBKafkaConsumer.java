@@ -11,10 +11,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
@@ -39,11 +39,12 @@ public class NBKafkaConsumer implements Disposable {
     private static final Logger LOG = Logger.getLogger(MethodHandles.lookup().lookupClass().getName());
 
     private final Collection<KafkaTopic> topics;
-    private final BlockingQueue<NBKafkaConsumerRecord> messages;
+    private final BlockingDeque<NBKafkaConsumerRecord> messages;
     private final ExecutorService executorService;
     private final AtomicBoolean started = new AtomicBoolean(false);
     private final AtomicBoolean running = new AtomicBoolean(true);
     private final AtomicBoolean shutdown = new AtomicBoolean(false);
+    private final AtomicBoolean slidingWindow = new AtomicBoolean(false);
     private final Lock lock = new ReentrantLock();
     private final Condition waitCondition = lock.newCondition();
 
@@ -57,13 +58,21 @@ public class NBKafkaConsumer implements Disposable {
 
     private final Map<String, Object> configProps;
 
+    private final int max;
+
     public NBKafkaConsumer(KafkaTopic topic,
             Consumer<NBKafkaConsumerRecord> observer,
             Predicate<NBKafkaConsumerRecord> predicates,
             Map<String, String> props,
             double rate,
-            int max) {
+            int max,
+            boolean slidingWindow) {
         this.predicate = predicates;
+        this.max = max;
+
+        if (max <= 0) {
+            throw new IllegalArgumentException("Max must be above 0");
+        }
 
         if (!KafkaPreferences.isValid()) {
             throw new IllegalStateException("Invalid settings");
@@ -86,7 +95,8 @@ public class NBKafkaConsumer implements Disposable {
         this.topics = Collections.singletonList(topic);
         this.observer = observer;
         this.limit.setRate(rate);
-        this.messages = new ArrayBlockingQueue<>(max);
+        this.messages = new LinkedBlockingDeque<>(max);
+        this.slidingWindow.set(slidingWindow);
     }
 
     private static String getGroupId() {
@@ -128,12 +138,23 @@ public class NBKafkaConsumer implements Disposable {
 
         if (isNotFiltered) {
             try {
-                messages.put(record);
+                makeSpaceForRecord();
+                messages.putFirst(record);
             } catch (InterruptedException ex) {
                 Thread.currentThread().interrupt();
             }
             observer.accept(record);
             limit.acquire();
+        }
+    }
+
+    private void makeSpaceForRecord() {
+        while (slidingWindow.get() && messages.size() >= max) {
+            try {
+                messages.takeLast();
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            }
         }
     }
 
@@ -174,6 +195,13 @@ public class NBKafkaConsumer implements Disposable {
         limit.setRate(permitsPerSecond);
     }
 
+    public final void setSlidingWindow(boolean isSliding) {
+        slidingWindow.set(isSliding);
+        if (slidingWindow.get()) {
+            makeSpaceForRecord();
+        }
+    }
+
     public final int getCount() {
         return consumedCount.get();
     }
@@ -186,6 +214,7 @@ public class NBKafkaConsumer implements Disposable {
         private final Map<String, String> props = new HashMap<>();
         private double rate = 1;
         private int max = 100;
+        private boolean slidingWindow;
 
         public Builder() {
         }
@@ -224,11 +253,16 @@ public class NBKafkaConsumer implements Disposable {
             this.max = max;
             return this;
         }
+        
+        public Builder slidingWindow(boolean slidingWindow) {
+            this.slidingWindow = slidingWindow;
+            return this;
+        }
 
         public NBKafkaConsumer build() {
             Objects.requireNonNull(topic, "Topic must not be null");
             Objects.requireNonNull(observer, "Topic must not be null");
-            return new NBKafkaConsumer(topic, observer, predicate, props, rate, max);
+            return new NBKafkaConsumer(topic, observer, predicate, props, rate, max, slidingWindow);
         }
     }
 }

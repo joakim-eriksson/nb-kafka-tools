@@ -68,15 +68,15 @@ public final class RecordsTopComponent extends TopComponent {
     private final InstanceContent content;
 
     public static final String RECORDS_TOP_COMPONENT_ID = "RecordsTopComponent";
-    
+
     private final Lookup.Result<Filters> lookupResult;
-    
+
     private final FilterPanel filterPanel;
 
     public RecordsTopComponent() {
         content = new InstanceContent();
         content.add(this.getActionMap());
-        
+
         Lookup lkp = new ProxyLookup(new AbstractLookup(content));
         associateLookup(lkp);
         initComponents();
@@ -111,6 +111,7 @@ public final class RecordsTopComponent extends TopComponent {
         filterButton = new javax.swing.JButton();
         distinctCheckBox = new javax.swing.JCheckBox();
         filler6 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767));
+        slidingWindowCheckBox = new javax.swing.JCheckBox();
         filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 0));
         statusLabel = new javax.swing.JLabel();
         filler5 = new javax.swing.Box.Filler(new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 32767));
@@ -215,6 +216,17 @@ public final class RecordsTopComponent extends TopComponent {
         });
         jToolBar1.add(distinctCheckBox);
         jToolBar1.add(filler6);
+
+        org.openide.awt.Mnemonics.setLocalizedText(slidingWindowCheckBox, org.openide.util.NbBundle.getMessage(RecordsTopComponent.class, "RecordsTopComponent.slidingWindowCheckBox.text")); // NOI18N
+        slidingWindowCheckBox.setFocusable(false);
+        slidingWindowCheckBox.setHorizontalTextPosition(javax.swing.SwingConstants.RIGHT);
+        slidingWindowCheckBox.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        slidingWindowCheckBox.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                slidingWindowCheckBoxItemStateChanged(evt);
+            }
+        });
+        jToolBar1.add(slidingWindowCheckBox);
         jToolBar1.add(filler1);
 
         org.openide.awt.Mnemonics.setLocalizedText(statusLabel, org.openide.util.NbBundle.getMessage(RecordsTopComponent.class, "RecordsTopComponent.statusLabel.text")); // NOI18N
@@ -355,6 +367,15 @@ public final class RecordsTopComponent extends TopComponent {
         filterPanel.showDialog();
     }//GEN-LAST:event_filterButtonActionPerformed
 
+    private void slidingWindowCheckBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_slidingWindowCheckBoxItemStateChanged
+        NBKafkaConsumer consumer = getLookup().lookup(NBKafkaConsumer.class);
+        if (consumer != null) {
+            RecordTableModel model = (RecordTableModel) recordTable.getModel();
+            model.setSlidingWindow(slidingWindowCheckBox.isSelected());
+            consumer.setSlidingWindow(slidingWindowCheckBox.isSelected());
+        }
+    }//GEN-LAST:event_slidingWindowCheckBoxItemStateChanged
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addButton;
@@ -377,6 +398,7 @@ public final class RecordsTopComponent extends TopComponent {
     private javax.swing.JButton refreshButton;
     private javax.swing.JPopupMenu rowPopupMenu;
     private javax.swing.JButton runButton;
+    private javax.swing.JCheckBox slidingWindowCheckBox;
     private javax.swing.JLabel statusLabel;
     private javax.swing.JButton stopButton;
     // End of variables declaration//GEN-END:variables
@@ -413,20 +435,24 @@ public final class RecordsTopComponent extends TopComponent {
 
         RecordTableModel tableModel = new RecordTableModel();
 
+        tableModel.setMaxRecords((int) maxRecordsSpinner.getValue());
+        tableModel.setSlidingWindow(slidingWindowCheckBox.isSelected());
+
         recordTable.setModel(tableModel);
 
         NBKafkaConsumer.Builder builder = new NBKafkaConsumer.Builder()
                 .observer(tableModel::onRecord)
                 .topic(topic)
                 .rate((Double) rateSpinner.getValue())
+                .slidingWindow(slidingWindowCheckBox.isSelected())
                 .max((int) maxRecordsSpinner.getValue());
 
         if ("earliest".equalsIgnoreCase((String) offsetResetComboBox.getSelectedItem())) {
             builder.earliest();
         }
-        
+
         Filters filters = getLookup().lookup(Filters.class);
-        
+
         if (filters != null) {
             builder.predicate(filters.getPredicate());
         }
