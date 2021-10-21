@@ -2,8 +2,6 @@ package se.jocke.nb.kafka.client;
 
 import com.google.common.util.concurrent.RateLimiter;
 import java.lang.invoke.MethodHandles;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
@@ -90,12 +88,7 @@ public class NBKafkaConsumer implements Disposable {
     }
 
     private static String getGroupId() {
-        try {
-            return InetAddress.getLocalHost().getHostName();
-        } catch (UnknownHostException ex) {
-            Exceptions.printStackTrace(ex);
-            return UUID.randomUUID().toString();
-        }
+        return UUID.randomUUID().toString();
     }
 
     public NBKafkaConsumer start() {

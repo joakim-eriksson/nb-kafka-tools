@@ -1,6 +1,8 @@
 package se.jocke.nb.kafka.window;
 
 import java.awt.EventQueue;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -17,12 +19,16 @@ public class RecordTableModel extends AbstractTableModel {
     private final List<NBKafkaConsumerRecord> distinctRecords;
 
     private boolean distinct = false;
+    
+    private static final String YYYY_M_MDD_H_HMMSS = "yyyy-MM-dd HH:mm:ss";
+
+    private static final SimpleDateFormat FORMAT = new SimpleDateFormat(YYYY_M_MDD_H_HMMSS);
 
     public enum VisibleColumn {
         TIMESTAMP {
             @Override
             Object getValue(NBKafkaConsumerRecord record) {
-                return record.getTimestamp();
+                return FORMAT.format(new Date(record.getTimestamp()));
             }
         },
         KEY {

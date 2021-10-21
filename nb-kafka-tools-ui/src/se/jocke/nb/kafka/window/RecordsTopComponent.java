@@ -87,8 +87,6 @@ public final class RecordsTopComponent extends TopComponent {
         lookupResult.addLookupListener((ev) -> {
             System.out.println("We have new filters");
         });
-        //TODO change background on odd or even and render timestamp as date 
-        //recordTable.setDefaultRenderer(Object.class, renderer);
     }
 
     /**
