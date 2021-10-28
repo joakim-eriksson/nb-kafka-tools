@@ -1,7 +1,6 @@
 package se.jocke.nb.kafka.client;
 
 import com.google.common.util.concurrent.RateLimiter;
-import java.lang.invoke.MethodHandles;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
@@ -22,7 +21,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import java.util.logging.Logger;
 import static java.util.stream.Collectors.toSet;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -30,14 +28,11 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.openide.util.Exceptions;
 import se.jocke.nb.kafka.Disposable;
-import se.jocke.nb.kafka.gcp.GCPConnectionConfig;
+import se.jocke.nb.kafka.nodes.root.KafkaServiceKey;
 import se.jocke.nb.kafka.nodes.topics.KafkaTopic;
-import se.jocke.nb.kafka.preferences.KafkaPreferences;
+import se.jocke.nb.kafka.preferences.NBKafkaPreferences;
 
 public class NBKafkaConsumer implements Disposable {
-
-    private static final Logger LOG = Logger.getLogger(MethodHandles.lookup().lookupClass().getName());
-
     private final Collection<KafkaTopic> topics;
     private final BlockingDeque<NBKafkaConsumerRecord> messages;
     private final ExecutorService executorService;
@@ -60,10 +55,12 @@ public class NBKafkaConsumer implements Disposable {
 
     private final int max;
 
-    public NBKafkaConsumer(KafkaTopic topic,
+    public NBKafkaConsumer(
+            KafkaServiceKey kafkaServiceKey,
+            KafkaTopic topic,
             Consumer<NBKafkaConsumerRecord> observer,
             Predicate<NBKafkaConsumerRecord> predicates,
-            Map<String, String> props,
+            Map<String, Object> props,
             double rate,
             int max,
             boolean slidingWindow) {
@@ -74,11 +71,8 @@ public class NBKafkaConsumer implements Disposable {
             throw new IllegalArgumentException("Max must be above 0");
         }
 
-        if (!KafkaPreferences.isValid()) {
-            throw new IllegalStateException("Invalid settings");
-        }
-
-        Map<String, String> prefs = KafkaPreferences.read();
+        Map<String, Object> prefs = NBKafkaPreferences.readConsumerConfigs(kafkaServiceKey);
+        
         this.configProps = new HashMap<>(prefs);
         configProps.putAll(props);
         configProps.put(ConsumerConfig.CLIENT_ID_CONFIG, UUID.randomUUID().toString());
@@ -86,10 +80,6 @@ public class NBKafkaConsumer implements Disposable {
         configProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         configProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         configProps.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, Boolean.FALSE);
-
-        if (GCPConnectionConfig.isEnabled()) {
-            configProps.putAll(GCPConnectionConfig.getConfig());
-        }
 
         this.executorService = Executors.newSingleThreadExecutor();
         this.topics = Collections.singletonList(topic);
@@ -207,11 +197,12 @@ public class NBKafkaConsumer implements Disposable {
     }
 
     public static class Builder {
-
+       
+        private KafkaServiceKey kafkaServiceKey;
         private KafkaTopic topic;
         private Consumer<NBKafkaConsumerRecord> observer;
         private Predicate<NBKafkaConsumerRecord> predicate = (record) -> true;
-        private final Map<String, String> props = new HashMap<>();
+        private final Map<String, Object> props = new HashMap<>();
         private double rate = 1;
         private int max = 100;
         private boolean slidingWindow;
@@ -258,11 +249,16 @@ public class NBKafkaConsumer implements Disposable {
             this.slidingWindow = slidingWindow;
             return this;
         }
+        
+        public Builder kafkaServiceKey(KafkaServiceKey kafkaServiceKey) {
+            this.kafkaServiceKey = kafkaServiceKey;
+            return this;
+        }
 
         public NBKafkaConsumer build() {
             Objects.requireNonNull(topic, "Topic must not be null");
             Objects.requireNonNull(observer, "Topic must not be null");
-            return new NBKafkaConsumer(topic, observer, predicate, props, rate, max, slidingWindow);
+            return new NBKafkaConsumer(kafkaServiceKey, topic, observer, predicate, props, rate, max, slidingWindow);
         }
     }
 }

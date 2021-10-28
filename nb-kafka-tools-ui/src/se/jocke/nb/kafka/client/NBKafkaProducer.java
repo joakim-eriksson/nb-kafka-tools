@@ -9,9 +9,7 @@ import org.apache.kafka.clients.producer.RecordMetadata;
  *
  * @author jocke
  */
-public interface NBKafkaProducer {
-
-    void close();
+public interface NBKafkaProducer extends AutoCloseable {
 
     Future<RecordMetadata> send(ProducerRecord<String, String> record, Callback callback);
     

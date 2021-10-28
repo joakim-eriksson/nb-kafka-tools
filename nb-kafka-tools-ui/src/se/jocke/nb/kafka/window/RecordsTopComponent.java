@@ -29,6 +29,7 @@ import org.openide.util.lookup.ProxyLookup;
 import se.jocke.nb.kafka.Disposable;
 import se.jocke.nb.kafka.client.NBKafkaConsumer;
 import se.jocke.nb.kafka.client.NBKafkaConsumerRecord;
+import se.jocke.nb.kafka.nodes.root.KafkaServiceKey;
 import se.jocke.nb.kafka.nodes.topics.KafkaTopic;
 import se.jocke.nb.kafka.window.FilterPanel.Filters;
 
@@ -271,9 +272,10 @@ public final class RecordsTopComponent extends TopComponent {
 
     private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
         KafkaTopic topic = getLookup().lookup(KafkaTopic.class);
-        if (topic != null) {
+        KafkaServiceKey kafkaServiceKey = getLookup().lookup(KafkaServiceKey.class);
+        if (topic != null && kafkaServiceKey != null) {
             try {
-                final AddMessagePanel addMessagePanel = new AddMessagePanel(topic);
+                final AddMessagePanel addMessagePanel = new AddMessagePanel(kafkaServiceKey, topic);
                 FileObject fob = FileUtil.createMemoryFileSystem().getRoot().createData(A_NEW, "json");
                 fob.addFileChangeListener(new FileChangeAdapter() {
                     @Override
@@ -320,7 +322,7 @@ public final class RecordsTopComponent extends TopComponent {
     }//GEN-LAST:event_rateSpinnerStateChanged
 
     private void refreshButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshButtonActionPerformed
-        initResources(getLookup().lookup(KafkaTopic.class));
+        initResources(getLookup().lookup(KafkaServiceKey.class), getLookup().lookup(KafkaTopic.class));
     }//GEN-LAST:event_refreshButtonActionPerformed
 
     private void openInEditorMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openInEditorMenuItemActionPerformed
@@ -341,7 +343,7 @@ public final class RecordsTopComponent extends TopComponent {
                     outputStream.flush();
                 }
 
-                final AddMessagePanel addMessagePanel = new AddMessagePanel(topic);
+                final AddMessagePanel addMessagePanel = new AddMessagePanel(getLookup().lookup(KafkaServiceKey.class), topic);
                 fob.addFileChangeListener(new FileChangeAdapter() {
                     @Override
                     public void fileChanged(FileEvent fe) {
@@ -422,13 +424,13 @@ public final class RecordsTopComponent extends TopComponent {
         closeResources();
     }
 
-    public void showTopic(KafkaTopic topic) {
+    public void showTopic(KafkaServiceKey kafkaServiceKey, KafkaTopic topic) {
         setDisplayName(topic.getName());
-        initResources(topic);
+        initResources(kafkaServiceKey, topic);
         open();
     }
 
-    private void initResources(KafkaTopic topic) {
+    private void initResources(KafkaServiceKey kafkaServiceKey, KafkaTopic topic) {
         closeResources();
 
         content.add(topic);
@@ -445,6 +447,7 @@ public final class RecordsTopComponent extends TopComponent {
                 .topic(topic)
                 .rate((Double) rateSpinner.getValue())
                 .slidingWindow(slidingWindowCheckBox.isSelected())
+                .kafkaServiceKey(kafkaServiceKey)
                 .max((int) maxRecordsSpinner.getValue());
 
         if ("earliest".equalsIgnoreCase((String) offsetResetComboBox.getSelectedItem())) {
@@ -458,6 +461,7 @@ public final class RecordsTopComponent extends TopComponent {
         }
 
         content.add(builder.build().start());
+        content.add(kafkaServiceKey);
 
         Timer t = new Timer(500, this::updateRecordCountLabel);
 

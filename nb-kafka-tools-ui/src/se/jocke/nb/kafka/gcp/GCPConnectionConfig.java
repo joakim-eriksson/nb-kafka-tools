@@ -14,43 +14,43 @@ import java.util.Map;
 import org.apache.kafka.common.config.SaslConfigs;
 import org.apache.kafka.common.config.SslConfigs;
 import org.openide.util.Exceptions;
-import se.jocke.nb.kafka.preferences.KafkaPreferences;
-import se.jocke.nb.kafka.preferences.ManagedAdminClientConfig;
+import se.jocke.nb.kafka.preferences.NBKafkaPreferences;
+import se.jocke.nb.kafka.nodes.root.ClientConnectionConfig;
 
 public class GCPConnectionConfig {
 
-    private static final String SECURITY_PROTOCOL = "security.protocol";
-    private static final String SASL_TEMPLATE = "org.apache.kafka.common.security.scram.ScramLoginModule required username='%s' password='%s';";
-
-    public static boolean isEnabled() {
-        return KafkaPreferences.getBoolean(ManagedAdminClientConfig.GCP_ENABLED.getKey(), false);
-    }
-
-    public static Map<String, String> getConfig() {
-        if (isEnabled()) {
-            Map<String, String> configProps = new LinkedHashMap<>();
-            configProps.put(SECURITY_PROTOCOL, "SASL_SSL");
-            configProps.put(SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG, "https");
-            configProps.put("sasl.mechanism", "PLAIN");
-
-            try {
-                SecretManagerServiceSettings.Builder builder = SecretManagerServiceSettings.newBuilder();
-                GoogleCredentials credentials = GoogleCredentials.fromStream(new ByteArrayInputStream(Base64.getDecoder().decode(KafkaPreferences.get(ManagedAdminClientConfig.GCP_ENCODED_KEY.getKey()))));
-                builder.setCredentialsProvider(FixedCredentialsProvider.create(credentials));
-                try (SecretManagerServiceClient client = SecretManagerServiceClient.create(builder.build())) {
-                    AccessSecretVersionRequest request = AccessSecretVersionRequest.newBuilder().setName(KafkaPreferences.get(ManagedAdminClientConfig.GCP_SECRET_VERSION_REQUEST_NAME.getKey())).build();
-                    AccessSecretVersionResponse response = client.accessSecretVersion(request);
-                    String[] secrets = response.getPayload().getData().toStringUtf8().split("\n");
-                    String namePass = String.format(SASL_TEMPLATE, secrets[0], secrets[1]);
-                    configProps.put(SaslConfigs.SASL_JAAS_CONFIG, namePass);
-                }
-            } catch (IOException ex) {
-                Exceptions.printStackTrace(ex);
-                throw new RuntimeException(ex);
-            }
-            return configProps;
-        } else {
-            throw new IllegalStateException("GCP is not enabled");
-        }
-    }
+//    private static final String SECURITY_PROTOCOL = "security.protocol";
+//    private static final String SASL_TEMPLATE = "org.apache.kafka.common.security.scram.ScramLoginModule required username='%s' password='%s';";
+//
+//    public static boolean isEnabled() {
+//        return NBKafkaPreferences.getBoolean(ClientConnectionConfig.GCP_SECRET_ENABLED.getKey(), false);
+//    }
+//
+//    public static Map<String, String> getConfig() {
+//        if (isEnabled()) {
+//            Map<String, String> configProps = new LinkedHashMap<>();
+//            configProps.put(SECURITY_PROTOCOL, "SASL_SSL");
+//            configProps.put(SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG, "https");
+//            configProps.put("sasl.mechanism", "PLAIN");
+//
+//            try {
+//                SecretManagerServiceSettings.Builder builder = SecretManagerServiceSettings.newBuilder();
+//                GoogleCredentials credentials = GoogleCredentials.fromStream(new ByteArrayInputStream(Base64.getDecoder().decode(NBKafkaPreferences.get(ClientConnectionConfig.GCP_SECRET_ENABLED.getKey()))));
+//                builder.setCredentialsProvider(FixedCredentialsProvider.create(credentials));
+//                try (SecretManagerServiceClient client = SecretManagerServiceClient.create(builder.build())) {
+//                    AccessSecretVersionRequest request = AccessSecretVersionRequest.newBuilder().setName(NBKafkaPreferences.get(ClientConnectionConfig.GCP_SECRET_VERSION_REQUEST_NAME.getKey())).build();
+//                    AccessSecretVersionResponse response = client.accessSecretVersion(request);
+//                    String[] secrets = response.getPayload().getData().toStringUtf8().split("\n");
+//                    String namePass = String.format(SASL_TEMPLATE, secrets[0], secrets[1]);
+//                    configProps.put(SaslConfigs.SASL_JAAS_CONFIG, namePass);
+//                }
+//            } catch (IOException ex) {
+//                Exceptions.printStackTrace(ex);
+//                throw new RuntimeException(ex);
+//            }
+//            return configProps;
+//        } else {
+//            throw new IllegalStateException("GCP is not enabled");
+//        }
+//    }
 }

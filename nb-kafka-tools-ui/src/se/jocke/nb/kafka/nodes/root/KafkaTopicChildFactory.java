@@ -14,7 +14,6 @@ import org.openide.nodes.Node;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import se.jocke.nb.kafka.client.AdminClientService;
-import se.jocke.nb.kafka.preferences.KafkaPreferences;
 import se.jocke.nb.kafka.nodes.topics.KafkaTopic;
 
 /**
@@ -25,17 +24,21 @@ public class KafkaTopicChildFactory extends ChildFactory<KafkaTopic> {
 
     private static final Logger logger = Logger.getLogger(MethodHandles.lookup().lookupClass().getName());
 
+    private final KafkaServiceKey kafkaService;
+
+    public KafkaTopicChildFactory(KafkaServiceKey kafkaService) {
+        this.kafkaService = kafkaService;
+    }
+
     @Override
     protected boolean createKeys(List<KafkaTopic> topics) {
 
         BlockingQueue<Collection<KafkaTopic>> topicTransfer = new LinkedBlockingDeque<>();
 
-        if (KafkaPreferences.isValid()) {
-            AdminClientService adminClientService = Lookup.getDefault().lookup(AdminClientService.class);
-            adminClientService.listTopics(topicTransfer::offer, throwable -> {
-                onException(topics, throwable);
-            });
-        }
+        AdminClientService adminClientService = Lookup.getDefault().lookup(AdminClientService.class);
+        adminClientService.listTopics(kafkaService, topicTransfer::offer, throwable -> {
+            onException(topics, throwable);
+        });
 
         Collection<KafkaTopic> poll;
         try {
@@ -56,7 +59,7 @@ public class KafkaTopicChildFactory extends ChildFactory<KafkaTopic> {
 
     @Override
     protected Node createNodeForKey(KafkaTopic key) {
-        return new KafkaTopicNode(key);
+        return new KafkaTopicNode(kafkaService, key);
     }
 
     public void refresh() {

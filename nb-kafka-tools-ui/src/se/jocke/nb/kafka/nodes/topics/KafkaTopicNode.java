@@ -17,6 +17,7 @@ import se.jocke.nb.kafka.window.RecordsTopComponent;
 import static se.jocke.nb.kafka.window.RecordsTopComponent.RECORDS_TOP_COMPONENT_ID;
 import static se.jocke.nb.kafka.action.Actions.actions;
 import static se.jocke.nb.kafka.action.Actions.action;
+import se.jocke.nb.kafka.nodes.root.KafkaServiceKey;
 
 /**
  *
@@ -26,16 +27,19 @@ public final class KafkaTopicNode extends AbstractNode {
 
     private final KafkaTopic kafkaTopic;
 
-    public KafkaTopicNode(KafkaTopic kafkaTopic) {
+    private final KafkaServiceKey kafkaServiceKey;
+
+    public KafkaTopicNode(KafkaServiceKey kafkaServiceKey, KafkaTopic kafkaTopic) {
         super(Children.LEAF, Lookups.singleton(kafkaTopic));
         this.kafkaTopic = kafkaTopic;
+        this.kafkaServiceKey = kafkaServiceKey;
         setDisplayName(kafkaTopic.getName());
         setIconBaseWithExtension("se/jocke/nb/kafka/nodes/topics/topic.png");
     }
 
     public void openRecords() {
         RecordsTopComponent component = (RecordsTopComponent) WindowManager.getDefault().findTopComponent(RECORDS_TOP_COMPONENT_ID);
-        component.showTopic(kafkaTopic);
+        component.showTopic(kafkaServiceKey, kafkaTopic);
     }
 
     @Override

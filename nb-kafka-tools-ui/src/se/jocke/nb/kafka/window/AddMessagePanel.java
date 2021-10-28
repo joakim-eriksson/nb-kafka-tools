@@ -6,7 +6,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.awt.event.ActionEvent;
-import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.Set;
 import java.util.logging.Level;
@@ -20,12 +19,13 @@ import org.openide.filesystems.FileObject;
 import org.openide.loaders.DataObject;
 import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.util.Exceptions;
-import org.openide.util.Lookup;
 import se.jocke.nb.kafka.client.NBKafkaProducer;
 import se.jocke.nb.kafka.nodes.topics.KafkaTopic;
 import static se.jocke.nb.kafka.window.RecordsTopComponent.A_NEW;
 import static se.jocke.nb.kafka.window.RecordsTopComponent.KEYLESS;
 import static se.jocke.nb.kafka.action.ActionCommanDispatcher.*;
+import se.jocke.nb.kafka.client.NBKafkaProducerImpl;
+import se.jocke.nb.kafka.nodes.root.KafkaServiceKey;
 
 /**
  *
@@ -38,12 +38,15 @@ public class AddMessagePanel extends javax.swing.JPanel {
     private final KafkaTopic topic;
 
     private static final Set<String> NULL_KEYS = Sets.newHashSet(A_NEW, KEYLESS);
+    
+    private final KafkaServiceKey kafkaServiceKey;
 
-    public AddMessagePanel(KafkaTopic topic) {
+    public AddMessagePanel(KafkaServiceKey kafkaServiceKey, KafkaTopic topic) {
         super();
         this.topic = topic;
         initComponents();
         topicLabel.setText(topic.getName());
+        this.kafkaServiceKey = kafkaServiceKey;
     }
 
     public void showDialog(FileObject fileObject) {
@@ -57,9 +60,7 @@ public class AddMessagePanel extends javax.swing.JPanel {
     public void onDialogDescriptorAction(ActionEvent event, FileObject fileObject) {
         LOG.log(Level.INFO, "Action triggered with command {0}", event.getActionCommand());
 
-        NBKafkaProducer producer = Lookup.getDefault().lookup(NBKafkaProducer.class);
-
-        try {
+        try (NBKafkaProducer producer = new NBKafkaProducerImpl(kafkaServiceKey)){
             String key = keyTextField.getText().isBlank() ? null : keyTextField.getText();
             String value = fileObject.asText();
 
@@ -83,7 +84,7 @@ public class AddMessagePanel extends javax.swing.JPanel {
                 });
             }
 
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             Exceptions.printStackTrace(ex);
         }
     }

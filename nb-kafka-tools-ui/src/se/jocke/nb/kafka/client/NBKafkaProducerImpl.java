@@ -10,26 +10,19 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.openide.util.lookup.ServiceProvider;
-import se.jocke.nb.kafka.gcp.GCPConnectionConfig;
-import se.jocke.nb.kafka.preferences.KafkaPreferences;
+import se.jocke.nb.kafka.nodes.root.KafkaServiceKey;
+import se.jocke.nb.kafka.preferences.NBKafkaPreferences;
 
-@ServiceProvider(service = NBKafkaProducer.class)
 public final class NBKafkaProducerImpl implements NBKafkaProducer {
 
     private final KafkaProducer<String, String> producer;
 
-    public NBKafkaProducerImpl() {
-        Map<String, String> prefs = KafkaPreferences.read();
+    public NBKafkaProducerImpl(KafkaServiceKey kafkaServiceKey) {
+        Map<String, Object> prefs = NBKafkaPreferences.readProducerConfigs(kafkaServiceKey);
         Map<String, Object> configProps = new HashMap<>(prefs);
         configProps.put(ProducerConfig.CLIENT_ID_CONFIG, UUID.randomUUID().toString());
         configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-
-        if (GCPConnectionConfig.isEnabled()) {
-            configProps.putAll(GCPConnectionConfig.getConfig());
-        }
-
         this.producer = new KafkaProducer<>(configProps);
     }
 
