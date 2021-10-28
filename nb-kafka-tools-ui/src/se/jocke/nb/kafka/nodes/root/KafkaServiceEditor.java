@@ -1,7 +1,5 @@
 package se.jocke.nb.kafka.nodes.root;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.AbstractMap.SimpleEntry;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -9,7 +7,6 @@ import org.openide.explorer.propertysheet.PropertySheet;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
 import org.openide.nodes.Node;
-import org.openide.nodes.PropertySupport;
 import org.openide.nodes.Sheet;
 
 /**
@@ -20,12 +17,6 @@ public class KafkaServiceEditor extends javax.swing.JPanel {
 
     private final Map<ClientConnectionConfig, Object> props;
 
-    private static final Map<Class<?>, Object> defaultValues = Map.ofEntries(
-            new SimpleEntry<>(Boolean.class, Boolean.FALSE),
-            new SimpleEntry<>(String.class, ""),
-            new SimpleEntry<>(Long.class, -1l)
-    );
-
     /**
      * Creates new form EditKafkaServicePanel
      */
@@ -33,7 +24,6 @@ public class KafkaServiceEditor extends javax.swing.JPanel {
         this.props = new LinkedHashMap<>();
         initComponents();
         PropertySheet kps = (PropertySheet) propertiesPanel;
-        
         AbstractNode abstractNode = new AbstractNode(Children.LEAF) {
             @Override
             public Node.PropertySet[] getPropertySets() {
@@ -41,7 +31,7 @@ public class KafkaServiceEditor extends javax.swing.JPanel {
                 set.setDisplayName("Connection config");
                 Arrays.asList(ClientConnectionConfig.values())
                         .stream()
-                        .map(ConnectionPropertySupport::new)
+                        .map(conf -> new ClientConnectionConfigPropertySupport(conf, props))
                         .forEach(set::put);
                 return new PropertySet[]{set};
             }
@@ -53,31 +43,9 @@ public class KafkaServiceEditor extends javax.swing.JPanel {
     public Map<ClientConnectionConfig, Object> getProps() {
         return new LinkedHashMap<>(props);
     }
-    
+
     public String getServiceName() {
         return nameTextField.getText();
-    }
-    
-    
-    private class ConnectionPropertySupport extends PropertySupport.ReadWrite {
-
-        private final ClientConnectionConfig config;
-
-        public ConnectionPropertySupport(ClientConnectionConfig config) {
-            super(config.getKey(), config.getPropertyType(), config.getKey(), config.getDesc());
-            this.config = config;
-        }
-
-        @Override
-        public Object getValue() throws IllegalAccessException, InvocationTargetException {
-            Object value = props.get(config);
-            return value == null ? defaultValues.get(config.getPropertyType()) : value;
-        }
-
-        @Override
-        public void setValue(Object value) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-            props.put(config, value);
-        }
     }
 
     /**

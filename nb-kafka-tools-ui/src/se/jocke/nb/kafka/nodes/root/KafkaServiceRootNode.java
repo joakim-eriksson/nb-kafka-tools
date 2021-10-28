@@ -1,10 +1,12 @@
 package se.jocke.nb.kafka.nodes.root;
 
+import java.util.Arrays;
 import javax.swing.Action;
 import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
+import org.openide.nodes.Sheet;
 import static se.jocke.nb.kafka.action.Actions.actions;
 import static se.jocke.nb.kafka.action.Actions.action;
 import static se.jocke.nb.kafka.action.ActionCommanDispatcher.*;
@@ -25,7 +27,7 @@ public final class KafkaServiceRootNode extends AbstractNode {
     public KafkaServiceRootNode() {
         this(new KafkaServiceChildFactory());
     }
-
+        
     @Override
     public Action[] getActions(boolean context) {
         return actions(

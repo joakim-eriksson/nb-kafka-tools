@@ -2,6 +2,7 @@ package se.jocke.nb.kafka.preferences;
 
 import se.jocke.nb.kafka.nodes.root.ClientConnectionConfig;
 import java.util.AbstractMap;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
@@ -47,15 +48,19 @@ public final class NBKafkaPreferences {
         return readConfigsByType(key, c -> c.isAdminConfig());
     }
 
+    public static Map<ClientConnectionConfig, Object> readAll(KafkaServiceKey key) {
+        return readConfigsByType(key, (k) -> true).entrySet()
+                .stream().map(e -> new SimpleEntry<>(ClientConnectionConfig.ofKey(e.getKey()), e.getValue()))
+                .collect(toMap(Entry::getKey, Entry::getValue));
+    }
+
     public static Map<String, Object> readConfigsByType(KafkaServiceKey kafkaServiceKey, Predicate<ClientConnectionConfig> predicate) {
         try {
             return Arrays.stream(PREFS_FOR_MODULE.node(kafkaServiceKey.getName()).keys())
-                    .peek(key -> System.out.println(key))
                     .filter(key -> predicate.test(ClientConnectionConfig.ofKey(key)))
                     .map(key -> new AbstractMap.SimpleEntry<>(key, get(kafkaServiceKey, ClientConnectionConfig.ofKey(key))))
                     .filter(entry -> entry.getValue().isPresent())
                     .map(entry -> new AbstractMap.SimpleEntry<>(entry.getKey(), entry.getValue().get()))
-                    .peek(entry -> System.out.println(entry))
                     .collect(toMap(Entry::getKey, Entry::getValue));
         } catch (BackingStoreException ex) {
             throw new IllegalStateException(ex);
@@ -64,12 +69,7 @@ public final class NBKafkaPreferences {
 
     public static void store(KafkaServiceKey key, Map<ClientConnectionConfig, Object> config) {
         config.forEach((conf, value) -> put(key, conf, value));
-        Preferences preferences = PREFS_FOR_MODULE.node(key.getName());
-        try {
-            preferences.sync();
-        } catch (BackingStoreException ex) {
-            Exceptions.printStackTrace(ex);
-        }
+        sync(key);
     }
 
     public static void put(KafkaServiceKey key, ClientConnectionConfig config, Object value) {
@@ -120,9 +120,10 @@ public final class NBKafkaPreferences {
         return Optional.empty();
     }
 
-    public static void sync() {
+    public static void sync(KafkaServiceKey key) {
+        Preferences preferences = PREFS_FOR_MODULE.node(key.getName());
         try {
-            PREFS_FOR_MODULE.sync();
+            preferences.sync();
         } catch (BackingStoreException ex) {
             Exceptions.printStackTrace(ex);
         }
