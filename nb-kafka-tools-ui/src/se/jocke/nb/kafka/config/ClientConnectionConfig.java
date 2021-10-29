@@ -1,4 +1,4 @@
-package se.jocke.nb.kafka.nodes.root;
+package se.jocke.nb.kafka.config;
 
 import java.util.AbstractMap;
 import java.util.Arrays;

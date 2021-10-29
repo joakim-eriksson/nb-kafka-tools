@@ -1,5 +1,7 @@
 package se.jocke.nb.kafka.nodes.root;
 
+import se.jocke.nb.kafka.config.ClientConnectionConfigPropertySupport;
+import se.jocke.nb.kafka.config.ClientConnectionConfig;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;

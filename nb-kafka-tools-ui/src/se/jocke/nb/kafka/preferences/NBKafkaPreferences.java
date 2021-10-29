@@ -1,10 +1,11 @@
 package se.jocke.nb.kafka.preferences;
 
-import se.jocke.nb.kafka.nodes.root.ClientConnectionConfig;
+import se.jocke.nb.kafka.config.ClientConnectionConfig;
 import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -14,24 +15,14 @@ import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import static java.util.stream.Collectors.toMap;
 import org.openide.util.Exceptions;
+import org.openide.util.Lookup;
 import org.openide.util.NbPreferences;
+import se.jocke.nb.kafka.config.ClientConnectionConfigMapper;
 import se.jocke.nb.kafka.nodes.root.KafkaServiceKey;
 
 public final class NBKafkaPreferences {
 
     private static final Preferences PREFS_FOR_MODULE = NbPreferences.forModule(NBKafkaPreferences.class);
-
-    public static void createNode(String name) {
-        try {
-            if (!PREFS_FOR_MODULE.nodeExists(name)) {
-                Preferences node = PREFS_FOR_MODULE.node(name);
-                node.put(ClientConnectionConfig.BOOTSTRAP_SERVERS.getKey(), "localhost:9092");
-                node.sync();
-            }
-        } catch (BackingStoreException ex) {
-            throw new IllegalStateException(ex);
-        }
-    }
 
     private NBKafkaPreferences() {
     }
@@ -56,12 +47,21 @@ public final class NBKafkaPreferences {
 
     public static Map<String, Object> readConfigsByType(KafkaServiceKey kafkaServiceKey, Predicate<ClientConnectionConfig> predicate) {
         try {
-            return Arrays.stream(PREFS_FOR_MODULE.node(kafkaServiceKey.getName()).keys())
+            Map<String, Object> conf = Arrays.stream(PREFS_FOR_MODULE.node(kafkaServiceKey.getName()).keys())
                     .filter(key -> predicate.test(ClientConnectionConfig.ofKey(key)))
                     .map(key -> new AbstractMap.SimpleEntry<>(key, get(kafkaServiceKey, ClientConnectionConfig.ofKey(key))))
                     .filter(entry -> entry.getValue().isPresent())
                     .map(entry -> new AbstractMap.SimpleEntry<>(entry.getKey(), entry.getValue().get()))
                     .collect(toMap(Entry::getKey, Entry::getValue));
+            
+            //No overrides allowed
+            Lookup.getDefault()
+                    .lookupAll(ClientConnectionConfigMapper.class)
+                    .stream()
+                    .forEach(mapper -> mapper.map(kafkaServiceKey, new LinkedHashMap<>(conf)).forEach(conf::putIfAbsent));            
+
+            return conf;
+
         } catch (BackingStoreException ex) {
             throw new IllegalStateException(ex);
         }
@@ -118,6 +118,30 @@ public final class NBKafkaPreferences {
         }
 
         return Optional.empty();
+    }
+
+    public static boolean getBoolean(KafkaServiceKey key, ClientConnectionConfig config) {
+        try {
+            if (PREFS_FOR_MODULE.nodeExists(key.getName())) {
+                Preferences preferences = PREFS_FOR_MODULE.node(key.getName());
+                return preferences.getBoolean(config.getKey(), false);
+            }
+        } catch (BackingStoreException e) {
+            throw new IllegalStateException(e);
+        }
+        return false;
+    }
+
+    public static String getString(KafkaServiceKey key, ClientConnectionConfig config) {
+        try {
+            if (PREFS_FOR_MODULE.nodeExists(key.getName())) {
+                Preferences preferences = PREFS_FOR_MODULE.node(key.getName());
+                return preferences.get(config.getKey(), null);
+            }
+        } catch (BackingStoreException e) {
+            throw new IllegalStateException(e);
+        }
+        return null;
     }
 
     public static void sync(KafkaServiceKey key) {

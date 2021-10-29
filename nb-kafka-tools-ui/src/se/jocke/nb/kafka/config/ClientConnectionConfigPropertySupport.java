@@ -1,9 +1,9 @@
-package se.jocke.nb.kafka.nodes.root;
+package se.jocke.nb.kafka.config;
 import java.lang.reflect.InvocationTargetException;
 import java.util.AbstractMap;
 import java.util.Map;
 import org.openide.nodes.PropertySupport;
-import se.jocke.nb.kafka.nodes.root.ClientConnectionConfig;
+import se.jocke.nb.kafka.config.ClientConnectionConfig;
 
 @SuppressWarnings("rawtypes")
 public class ClientConnectionConfigPropertySupport extends PropertySupport.ReadWrite {
