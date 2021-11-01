@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+OpenIDE-Module-Layer: se/jocke/nb/kafka/layer.xml
+OpenIDE-Module-Localizing-Bundle: se/jocke/nb/kafka/Bundle.properties
+
