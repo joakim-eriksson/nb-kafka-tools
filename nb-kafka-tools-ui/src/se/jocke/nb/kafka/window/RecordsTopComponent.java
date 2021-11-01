@@ -47,7 +47,6 @@ import se.jocke.nb.kafka.window.FilterPanel.Filters;
 )
 @TopComponent.Registration(mode = "editor", openAtStartup = false)
 @ActionID(category = "Window", id = "se.jocke.nb.kafka.window.RecordsTopComponent")
-@ActionReference(path = "Menu/Window" /*, position = 333 */)
 @TopComponent.OpenActionRegistration(
         displayName = "#CTL_RecordsAction",
         preferredID = "RecordsTopComponent"

@@ -11,10 +11,8 @@ import org.openide.nodes.PropertySupport;
 import org.openide.nodes.Sheet;
 import org.openide.util.actions.SystemAction;
 import org.openide.util.lookup.Lookups;
-import org.openide.windows.WindowManager;
 import se.jocke.nb.kafka.NBKafkaConfigEntry;
 import se.jocke.nb.kafka.window.RecordsTopComponent;
-import static se.jocke.nb.kafka.window.RecordsTopComponent.RECORDS_TOP_COMPONENT_ID;
 import static se.jocke.nb.kafka.action.Actions.actions;
 import static se.jocke.nb.kafka.action.Actions.action;
 import se.jocke.nb.kafka.nodes.root.KafkaServiceKey;
@@ -38,7 +36,7 @@ public final class KafkaTopicNode extends AbstractNode {
     }
 
     public void openRecords() {
-        RecordsTopComponent component = (RecordsTopComponent) WindowManager.getDefault().findTopComponent(RECORDS_TOP_COMPONENT_ID);
+        RecordsTopComponent component = new RecordsTopComponent();
         component.showTopic(kafkaServiceKey, kafkaTopic);
     }
 

@@ -1,7 +1,5 @@
 package se.jocke.nb.kafka.nodes.root;
 
-import se.jocke.nb.kafka.config.ClientConnectionConfigPropertySupport;
-import se.jocke.nb.kafka.config.ClientConnectionConfig;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -20,17 +18,17 @@ import org.openide.nodes.Sheet;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.actions.SystemAction;
-import org.openide.windows.WindowManager;
-import se.jocke.nb.kafka.nodes.topics.KafkaCreateTopic;
-import se.jocke.nb.kafka.nodes.topics.TopicEditor;
-import static se.jocke.nb.kafka.action.Actions.actions;
-import static se.jocke.nb.kafka.action.Actions.action;
 import static se.jocke.nb.kafka.action.ActionCommanDispatcher.*;
+import static se.jocke.nb.kafka.action.Actions.action;
+import static se.jocke.nb.kafka.action.Actions.actions;
 import se.jocke.nb.kafka.client.AdminClientService;
+import se.jocke.nb.kafka.config.ClientConnectionConfig;
+import se.jocke.nb.kafka.config.ClientConnectionConfigPropertySupport;
+import se.jocke.nb.kafka.nodes.topics.KafkaCreateTopic;
 import se.jocke.nb.kafka.nodes.topics.KafkaTopic;
+import se.jocke.nb.kafka.nodes.topics.TopicEditor;
 import se.jocke.nb.kafka.preferences.NBKafkaPreferences;
 import se.jocke.nb.kafka.window.RecordsTopComponent;
-import static se.jocke.nb.kafka.window.RecordsTopComponent.RECORDS_TOP_COMPONENT_ID;
 
 /**
  *
@@ -114,7 +112,7 @@ public class KafkaServiceNode extends AbstractNode {
                 onAction(ok(event -> {
                     if (viewTopicPanel.getTopicName() != null && !viewTopicPanel.getTopicName().isBlank()) {
                         KafkaTopic kafkaTopic = new KafkaTopic(viewTopicPanel.getTopicName(), Optional.empty());
-                        RecordsTopComponent component = (RecordsTopComponent) WindowManager.getDefault().findTopComponent(RECORDS_TOP_COMPONENT_ID);
+                        RecordsTopComponent component = new RecordsTopComponent();
                         Set<String> topics = new LinkedHashSet<>(NBKafkaPreferences.getStrings(kafkaServiceKey, ClientConnectionConfig.SAVED_TOPICS));
                         
                         if (viewTopicPanel.remeberMe() && topics.add(viewTopicPanel.getTopicName())) {
