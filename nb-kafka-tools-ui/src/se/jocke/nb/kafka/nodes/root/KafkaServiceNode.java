@@ -5,9 +5,11 @@ import se.jocke.nb.kafka.config.ClientConnectionConfig;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 import static java.util.stream.Collectors.toMap;
 import javax.swing.Action;
 import org.openide.*;
@@ -17,7 +19,6 @@ import org.openide.nodes.Children;
 import org.openide.nodes.Sheet;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
-import org.openide.util.NbPreferences;
 import org.openide.util.actions.SystemAction;
 import org.openide.windows.WindowManager;
 import se.jocke.nb.kafka.nodes.topics.KafkaCreateTopic;
@@ -38,7 +39,7 @@ import static se.jocke.nb.kafka.window.RecordsTopComponent.RECORDS_TOP_COMPONENT
 public class KafkaServiceNode extends AbstractNode {
 
     private final KafkaTopicChildFactory kafkaTopicChildFactory;
-    
+
     private final KafkaServiceKey kafkaServiceKey;
 
     private KafkaServiceNode(KafkaTopicChildFactory kafkaTopicChildFactory, KafkaServiceKey kafkaServiceKey) {
@@ -58,18 +59,18 @@ public class KafkaServiceNode extends AbstractNode {
         Sheet sheet = Sheet.createDefault();
         Sheet.Set set = Sheet.createPropertiesSet();
         final Map<ClientConnectionConfig, Object> props = NBKafkaPreferences.readAll(kafkaServiceKey);
-                
+
         Map<ClientConnectionConfig, Object> edit = new LinkedHashMap<>(props) {
             @Override
             public Object put(ClientConnectionConfig key, Object value) {
                 NBKafkaPreferences.put(kafkaServiceKey, key, value);
                 NBKafkaPreferences.sync(kafkaServiceKey);
                 return super.put(key, value);
-            }    
+            }
         };
-        
+
         set.setDisplayName("Connection config");
-        
+
         Arrays.asList(ClientConnectionConfig.values())
                 .stream()
                 .map(conf -> new ClientConnectionConfigPropertySupport(conf, edit))
@@ -77,7 +78,7 @@ public class KafkaServiceNode extends AbstractNode {
         sheet.put(set);
         return sheet;
     }
-    
+
     public void showTopicEditor() {
         TopicEditor topicEditor = new TopicEditor();
         DialogDescriptor descriptor = new DialogDescriptor(topicEditor, "Create", true, onAction(ok(e -> onCreateTopicDialogDescriptorActionOK(topicEditor))));
@@ -98,7 +99,7 @@ public class KafkaServiceNode extends AbstractNode {
                 .build();
 
         AdminClientService client = Lookup.getDefault().lookup(AdminClientService.class);
-        
+
         client.createTopics(kafkaServiceKey, Collections.singletonList(createTopic), this::refreshTopics, Exceptions::printStackTrace);
 
     }
@@ -108,12 +109,27 @@ public class KafkaServiceNode extends AbstractNode {
     }
 
     public void viewTopic() {
-        ViewTopicPanel viewTopicPanel = new ViewTopicPanel();
+        final ViewTopicPanel viewTopicPanel = new ViewTopicPanel();
         DialogDescriptor descriptor = new DialogDescriptor(viewTopicPanel, "View Topic", true,
                 onAction(ok(event -> {
-                    KafkaTopic kafkaTopic = new KafkaTopic(viewTopicPanel.getTopicName(), Optional.empty());
-                    RecordsTopComponent component = (RecordsTopComponent) WindowManager.getDefault().findTopComponent(RECORDS_TOP_COMPONENT_ID);
-                    component.showTopic(kafkaServiceKey, kafkaTopic);
+                    if (viewTopicPanel.getTopicName() != null && !viewTopicPanel.getTopicName().isBlank()) {
+                        KafkaTopic kafkaTopic = new KafkaTopic(viewTopicPanel.getTopicName(), Optional.empty());
+                        RecordsTopComponent component = (RecordsTopComponent) WindowManager.getDefault().findTopComponent(RECORDS_TOP_COMPONENT_ID);
+                        Set<String> topics = new LinkedHashSet<>(NBKafkaPreferences.getStrings(kafkaServiceKey, ClientConnectionConfig.SAVED_TOPICS));
+                        
+                        if (viewTopicPanel.remeberMe() && topics.add(viewTopicPanel.getTopicName())) {
+                            NBKafkaPreferences.put(kafkaServiceKey, ClientConnectionConfig.SAVED_TOPICS, topics);
+                            NBKafkaPreferences.sync(kafkaServiceKey);
+                            refreshTopics();
+                        
+                        } else if (!viewTopicPanel.remeberMe() && topics.remove(viewTopicPanel.getTopicName())) {
+                            NBKafkaPreferences.put(kafkaServiceKey, ClientConnectionConfig.SAVED_TOPICS, topics);
+                            NBKafkaPreferences.sync(kafkaServiceKey);
+                            refreshTopics();
+                        }
+                        
+                        component.showTopic(kafkaServiceKey, kafkaTopic);
+                    }
                 })));
         DialogDisplayer.getDefault().notifyLater(descriptor);
     }

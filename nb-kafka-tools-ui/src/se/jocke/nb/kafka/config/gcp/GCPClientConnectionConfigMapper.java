@@ -23,20 +23,20 @@ public class GCPClientConnectionConfigMapper implements ClientConnectionConfigMa
 
     @Override
     public Map<String, Object> map(KafkaServiceKey key, Map<String, Object> config) {
-        if (isEnabled(key)) {
+        if (isEnabled(key) && NBKafkaPreferences.getString(key, ClientConnectionConfig.GCP_SECRET_ENCODED_KEY).isPresent()) {
             Map<String, Object> newConfig = new LinkedHashMap<>(config);
             try {
                 SecretManagerServiceSettings.Builder builder = SecretManagerServiceSettings.newBuilder();
-                ByteArrayInputStream bais = new ByteArrayInputStream(Base64.getDecoder().decode(NBKafkaPreferences.getString(key, ClientConnectionConfig.GCP_SECRET_ENCODED_KEY)));
+                ByteArrayInputStream bais = new ByteArrayInputStream(Base64.getDecoder().decode(NBKafkaPreferences.getString(key, ClientConnectionConfig.GCP_SECRET_ENCODED_KEY).get()));
                 GoogleCredentials credentials = GoogleCredentials.fromStream(bais);
                 builder.setCredentialsProvider(FixedCredentialsProvider.create(credentials));
                 try ( SecretManagerServiceClient client = SecretManagerServiceClient.create(builder.build())) {
                     AccessSecretVersionRequest request = AccessSecretVersionRequest.newBuilder()
-                            .setName(NBKafkaPreferences.getString(key, ClientConnectionConfig.GCP_SECRET_VERSION_REQUEST_NAME))
+                            .setName(NBKafkaPreferences.getString(key, ClientConnectionConfig.GCP_SECRET_VERSION_REQUEST_NAME).get())
                             .build();
                     AccessSecretVersionResponse response = client.accessSecretVersion(request);
                     String[] secrets = response.getPayload().getData().toStringUtf8().split("\n");
-                    String jasConfig = String.format(NBKafkaPreferences.getString(key, ClientConnectionConfig.SASL_JAAS_CONFIG_TEMPLATE), secrets[0], secrets[1]);
+                    String jasConfig = String.format(NBKafkaPreferences.getString(key, ClientConnectionConfig.SASL_JAAS_CONFIG_TEMPLATE).get(), secrets[0], secrets[1]);
                     newConfig.put(ClientConnectionConfig.SASL_JAAS_CONFIG.getKey(), jasConfig);
                 }
 

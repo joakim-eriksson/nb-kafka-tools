@@ -4,6 +4,7 @@ import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import static java.util.stream.Collectors.toMap;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.common.config.SaslConfigs;
@@ -41,7 +42,10 @@ public enum ClientConnectionConfig {
     
     GCP_SECRET_ENABLED("gcp.secret.enabled", "If name and password is a GCP secret", Boolean.class, false, false, false),
     GCP_SECRET_VERSION_REQUEST_NAME("gcp.secret.version.request.name", "Secret name", String.class, false, false, false),
-    GCP_SECRET_ENCODED_KEY("gcp.encoded.key", "Secret key", String.class, false, false, false);
+    GCP_SECRET_ENCODED_KEY("gcp.encoded.key", "Secret key", String.class, false, false, false),
+    
+    SAVED_TOPICS("saved.topics", "Topics saved", Set.class, false, false, false),
+    LIST_TOPICS_DISABLED("list.topics.disabled", "Is connecting to kafka and get a list of topics possible, all users may not be authorized to do so", Boolean.class, false, false, false);
 
     private final String key;
 

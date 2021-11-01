@@ -2,7 +2,7 @@ package se.jocke.nb.kafka.nodes.root;
 
 import java.util.Objects;
 
-public class KafkaServiceKey {
+public final class KafkaServiceKey {
 
     private final String name;
 

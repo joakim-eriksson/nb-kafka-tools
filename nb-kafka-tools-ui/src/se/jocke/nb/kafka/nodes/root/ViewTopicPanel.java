@@ -1,14 +1,5 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package se.jocke.nb.kafka.nodes.root;
 
-/**
- *
- * @author jocke
- */
 public class ViewTopicPanel extends javax.swing.JPanel {
 
     /**
@@ -29,10 +20,13 @@ public class ViewTopicPanel extends javax.swing.JPanel {
 
         jLabel1 = new javax.swing.JLabel();
         topicNameTextField = new javax.swing.JTextField();
+        remeberCheckBox = new javax.swing.JCheckBox();
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(ViewTopicPanel.class, "ViewTopicPanel.jLabel1.text")); // NOI18N
 
         topicNameTextField.setText(org.openide.util.NbBundle.getMessage(ViewTopicPanel.class, "ViewTopicPanel.topicNameTextField.text")); // NOI18N
+
+        org.openide.awt.Mnemonics.setLocalizedText(remeberCheckBox, org.openide.util.NbBundle.getMessage(ViewTopicPanel.class, "ViewTopicPanel.remeberCheckBox.text")); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -42,7 +36,11 @@ public class ViewTopicPanel extends javax.swing.JPanel {
                 .addContainerGap()
                 .addComponent(jLabel1)
                 .addGap(18, 18, 18)
-                .addComponent(topicNameTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 320, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(remeberCheckBox)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(topicNameTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 320, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -52,6 +50,8 @@ public class ViewTopicPanel extends javax.swing.JPanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel1)
                     .addComponent(topicNameTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(remeberCheckBox)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
@@ -60,9 +60,14 @@ public class ViewTopicPanel extends javax.swing.JPanel {
     public String getTopicName() {
         return topicNameTextField.getText();
     }
+
+    public boolean remeberMe() {
+        return remeberCheckBox.isSelected();
+    }
    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JCheckBox remeberCheckBox;
     private javax.swing.JTextField topicNameTextField;
     // End of variables declaration//GEN-END:variables
 }

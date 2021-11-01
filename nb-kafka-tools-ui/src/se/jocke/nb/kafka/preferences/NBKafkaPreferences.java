@@ -1,9 +1,12 @@
 package se.jocke.nb.kafka.preferences;
 
+import com.google.common.base.Splitter;
+import com.google.common.collect.Sets;
 import se.jocke.nb.kafka.config.ClientConnectionConfig;
 import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -86,6 +89,8 @@ public final class NBKafkaPreferences {
                 preferences.putLong(config.getKey(), (Long) value);
             } else if (config.getPropertyType() == Double.class) {
                 preferences.putDouble(config.getKey(), (double) value);
+            } else if (config.getPropertyType() == Set.class) {
+                preferences.put(config.getKey(), String.join(",", ((Set<String>) value)));
             } else {
                 throw new IllegalStateException("Unknown type " + config.getPropertyType());
             }
@@ -108,6 +113,8 @@ public final class NBKafkaPreferences {
                         return Optional.ofNullable(preferences.getLong(config.getKey(), -1));
                     } else if (config.getPropertyType() == Double.class) {
                         return Optional.ofNullable(preferences.getDouble(config.getKey(), -1));
+                    } else if (config.getPropertyType() == Set.class) {
+                        return Optional.ofNullable(Sets.newLinkedHashSet(Splitter.on(",").omitEmptyStrings().split(preferences.get(config.getKey(), ""))));
                     } else {
                         throw new IllegalStateException("Unknown type " + config.getPropertyType());
                     }
@@ -119,29 +126,18 @@ public final class NBKafkaPreferences {
 
         return Optional.empty();
     }
-
+    
+    //JEP 301 Closed / Withdrawn ):
     public static boolean getBoolean(KafkaServiceKey key, ClientConnectionConfig config) {
-        try {
-            if (PREFS_FOR_MODULE.nodeExists(key.getName())) {
-                Preferences preferences = PREFS_FOR_MODULE.node(key.getName());
-                return preferences.getBoolean(config.getKey(), false);
-            }
-        } catch (BackingStoreException e) {
-            throw new IllegalStateException(e);
-        }
-        return false;
+        return get(key, config).map(conf -> Boolean.class.cast(conf)).orElse(Boolean.FALSE);
     }
 
-    public static String getString(KafkaServiceKey key, ClientConnectionConfig config) {
-        try {
-            if (PREFS_FOR_MODULE.nodeExists(key.getName())) {
-                Preferences preferences = PREFS_FOR_MODULE.node(key.getName());
-                return preferences.get(config.getKey(), null);
-            }
-        } catch (BackingStoreException e) {
-            throw new IllegalStateException(e);
-        }
-        return null;
+    public static Optional<String> getString(KafkaServiceKey key, ClientConnectionConfig config) {
+        return get(key, config).map(conf -> String.class.cast(conf));
+    }
+    
+    public static Set<String> getStrings(KafkaServiceKey key, ClientConnectionConfig config) {
+        return get(key, config).map(conf -> (Set<String>) conf).orElse(Collections.emptySet());
     }
 
     public static void sync(KafkaServiceKey key) {
