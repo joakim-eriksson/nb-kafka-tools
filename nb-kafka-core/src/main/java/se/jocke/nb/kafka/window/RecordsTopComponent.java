@@ -12,7 +12,7 @@ import javax.swing.Timer;
 import javax.swing.table.TableModel;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
-import org.openide.cookies.EditorCookie;
+import org.openide.cookies.OpenCookie;
 import org.openide.filesystems.FileChangeAdapter;
 import org.openide.filesystems.FileEvent;
 import org.openide.filesystems.FileObject;
@@ -269,16 +269,24 @@ public final class RecordsTopComponent extends TopComponent {
             try {
                 final AddMessagePanel addMessagePanel = new AddMessagePanel(kafkaServiceKey, topic);
                 FileObject fob = FileUtil.createMemoryFileSystem().getRoot().createData(A_NEW, "json");
+
+                try (OutputStream outputStream = fob.getOutputStream()) {
+                    outputStream.write("{}".getBytes());
+                    outputStream.flush();
+                }
+
                 fob.addFileChangeListener(new FileChangeAdapter() {
                     @Override
                     public void fileChanged(FileEvent fe) {
                         addMessagePanel.showDialog(fe.getFile());
                     }
                 });
+
                 DataObject dob = DataObject.find(fob);
-                EditorCookie ed = dob.getLookup().lookup(EditorCookie.class);
-                if (ed != null) {
-                    ed.open();
+                OpenCookie openCookie = dob.getLookup().lookup(OpenCookie.class);
+
+                if (openCookie != null) {
+                    openCookie.open();
                 }
             } catch (IOException ex) {
                 Exceptions.printStackTrace(ex);
@@ -346,9 +354,11 @@ public final class RecordsTopComponent extends TopComponent {
                 });
 
                 DataObject dob = DataObject.find(fob);
-                
-                EditorCookie ed = dob.getLookup().lookup(EditorCookie.class);
-                ed.open();
+
+                OpenCookie openCookie = dob.getLookup().lookup(OpenCookie.class);
+                if (openCookie != null) {
+                    openCookie.open();
+                }
             } catch (IOException ex) {
                 Exceptions.printStackTrace(ex);
             }

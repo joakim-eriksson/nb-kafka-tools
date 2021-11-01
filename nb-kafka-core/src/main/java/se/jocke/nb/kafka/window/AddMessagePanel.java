@@ -21,12 +21,12 @@ import org.openide.loaders.DataObject;
 import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
+import static se.jocke.nb.kafka.action.ActionCommandDispatcher.*;
 import se.jocke.nb.kafka.client.NBKafkaProducer;
+import se.jocke.nb.kafka.nodes.root.NBKafkaServiceKey;
 import se.jocke.nb.kafka.nodes.topics.NBKafkaTopic;
 import static se.jocke.nb.kafka.window.RecordsTopComponent.A_NEW;
 import static se.jocke.nb.kafka.window.RecordsTopComponent.KEYLESS;
-import static se.jocke.nb.kafka.action.ActionCommandDispatcher.*;
-import se.jocke.nb.kafka.nodes.root.NBKafkaServiceKey;
 
 /**
  *
