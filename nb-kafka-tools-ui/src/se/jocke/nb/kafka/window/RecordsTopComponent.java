@@ -29,8 +29,8 @@ import org.openide.util.lookup.ProxyLookup;
 import se.jocke.nb.kafka.Disposable;
 import se.jocke.nb.kafka.client.NBKafkaConsumer;
 import se.jocke.nb.kafka.client.NBKafkaConsumerRecord;
-import se.jocke.nb.kafka.nodes.root.KafkaServiceKey;
-import se.jocke.nb.kafka.nodes.topics.KafkaTopic;
+import se.jocke.nb.kafka.nodes.root.NBKafkaServiceKey;
+import se.jocke.nb.kafka.nodes.topics.NBKafkaTopic;
 import se.jocke.nb.kafka.window.FilterPanel.Filters;
 
 /**
@@ -270,8 +270,8 @@ public final class RecordsTopComponent extends TopComponent {
     }// </editor-fold>//GEN-END:initComponents
 
     private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
-        KafkaTopic topic = getLookup().lookup(KafkaTopic.class);
-        KafkaServiceKey kafkaServiceKey = getLookup().lookup(KafkaServiceKey.class);
+        NBKafkaTopic topic = getLookup().lookup(NBKafkaTopic.class);
+        NBKafkaServiceKey kafkaServiceKey = getLookup().lookup(NBKafkaServiceKey.class);
         if (topic != null && kafkaServiceKey != null) {
             try {
                 final AddMessagePanel addMessagePanel = new AddMessagePanel(kafkaServiceKey, topic);
@@ -321,12 +321,12 @@ public final class RecordsTopComponent extends TopComponent {
     }//GEN-LAST:event_rateSpinnerStateChanged
 
     private void refreshButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshButtonActionPerformed
-        initResources(getLookup().lookup(KafkaServiceKey.class), getLookup().lookup(KafkaTopic.class));
+        initResources(getLookup().lookup(NBKafkaServiceKey.class), getLookup().lookup(NBKafkaTopic.class));
     }//GEN-LAST:event_refreshButtonActionPerformed
 
     private void openInEditorMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openInEditorMenuItemActionPerformed
         int selectedRow = recordTable.getSelectedRow();
-        KafkaTopic topic = getLookup().lookup(KafkaTopic.class);
+        NBKafkaTopic topic = getLookup().lookup(NBKafkaTopic.class);
         if (selectedRow >= 0 && topic != null) {
             try {
                 RecordTableModel model = (RecordTableModel) recordTable.getModel();
@@ -342,7 +342,7 @@ public final class RecordsTopComponent extends TopComponent {
                     outputStream.flush();
                 }
 
-                final AddMessagePanel addMessagePanel = new AddMessagePanel(getLookup().lookup(KafkaServiceKey.class), topic);
+                final AddMessagePanel addMessagePanel = new AddMessagePanel(getLookup().lookup(NBKafkaServiceKey.class), topic);
                 fob.addFileChangeListener(new FileChangeAdapter() {
                     @Override
                     public void fileChanged(FileEvent fe) {
@@ -423,13 +423,13 @@ public final class RecordsTopComponent extends TopComponent {
         closeResources();
     }
 
-    public void showTopic(KafkaServiceKey kafkaServiceKey, KafkaTopic topic) {
+    public void showTopic(NBKafkaServiceKey kafkaServiceKey, NBKafkaTopic topic) {
         setDisplayName(topic.getName());
         initResources(kafkaServiceKey, topic);
         open();
     }
 
-    private void initResources(KafkaServiceKey kafkaServiceKey, KafkaTopic topic) {
+    private void initResources(NBKafkaServiceKey kafkaServiceKey, NBKafkaTopic topic) {
         closeResources();
 
         content.add(topic);

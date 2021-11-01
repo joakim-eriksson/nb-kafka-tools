@@ -18,14 +18,14 @@ import org.openide.nodes.Sheet;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.actions.SystemAction;
-import static se.jocke.nb.kafka.action.ActionCommanDispatcher.*;
+import static se.jocke.nb.kafka.action.ActionCommandDispatcher.*;
 import static se.jocke.nb.kafka.action.Actions.action;
 import static se.jocke.nb.kafka.action.Actions.actions;
 import se.jocke.nb.kafka.client.AdminClientService;
 import se.jocke.nb.kafka.config.ClientConnectionConfig;
 import se.jocke.nb.kafka.config.ClientConnectionConfigPropertySupport;
-import se.jocke.nb.kafka.nodes.topics.KafkaCreateTopic;
-import se.jocke.nb.kafka.nodes.topics.KafkaTopic;
+import se.jocke.nb.kafka.nodes.topics.NBKafkaCreateTopic;
+import se.jocke.nb.kafka.nodes.topics.NBKafkaTopic;
 import se.jocke.nb.kafka.nodes.topics.TopicEditor;
 import se.jocke.nb.kafka.preferences.NBKafkaPreferences;
 import se.jocke.nb.kafka.window.RecordsTopComponent;
@@ -34,20 +34,20 @@ import se.jocke.nb.kafka.window.RecordsTopComponent;
  *
  * @author jocke
  */
-public class KafkaServiceNode extends AbstractNode {
+public class NBKafkaServiceNode extends AbstractNode {
 
-    private final KafkaTopicChildFactory kafkaTopicChildFactory;
+    private final NBKafkaTopicChildFactory kafkaTopicChildFactory;
 
-    private final KafkaServiceKey kafkaServiceKey;
+    private final NBKafkaServiceKey kafkaServiceKey;
 
-    private KafkaServiceNode(KafkaTopicChildFactory kafkaTopicChildFactory, KafkaServiceKey kafkaServiceKey) {
+    private NBKafkaServiceNode(NBKafkaTopicChildFactory kafkaTopicChildFactory, NBKafkaServiceKey kafkaServiceKey) {
         super(Children.create(kafkaTopicChildFactory, true));
         this.kafkaTopicChildFactory = kafkaTopicChildFactory;
         this.kafkaServiceKey = kafkaServiceKey;
     }
 
-    public KafkaServiceNode(KafkaServiceKey kafkaServiceKey) {
-        this(new KafkaTopicChildFactory(kafkaServiceKey), kafkaServiceKey);
+    public NBKafkaServiceNode(NBKafkaServiceKey kafkaServiceKey) {
+        this(new NBKafkaTopicChildFactory(kafkaServiceKey), kafkaServiceKey);
         setDisplayName(kafkaServiceKey.getName());
         setIconBaseWithExtension("se/jocke/nb/kafka/nodes/root/kafka.png");
     }
@@ -89,7 +89,7 @@ public class KafkaServiceNode extends AbstractNode {
                 .stream()
                 .collect(toMap(Entry::getKey, e -> e.getValue().toString()));
 
-        KafkaCreateTopic createTopic = new KafkaCreateTopic.KafkaCreateTopicBuilder()
+        NBKafkaCreateTopic createTopic = new NBKafkaCreateTopic.KafkaCreateTopicBuilder()
                 .name(topicEditor.getTopicName())
                 .numPartitions(Optional.ofNullable(topicEditor.getNumberOfPartitions()))
                 .replicationFactor(Optional.ofNullable(topicEditor.getReplicationFactor()))
@@ -111,7 +111,7 @@ public class KafkaServiceNode extends AbstractNode {
         DialogDescriptor descriptor = new DialogDescriptor(viewTopicPanel, "View Topic", true,
                 onAction(ok(event -> {
                     if (viewTopicPanel.getTopicName() != null && !viewTopicPanel.getTopicName().isBlank()) {
-                        KafkaTopic kafkaTopic = new KafkaTopic(viewTopicPanel.getTopicName(), Optional.empty());
+                        NBKafkaTopic kafkaTopic = new NBKafkaTopic(viewTopicPanel.getTopicName(), Optional.empty());
                         RecordsTopComponent component = new RecordsTopComponent();
                         Set<String> topics = new LinkedHashSet<>(NBKafkaPreferences.getStrings(kafkaServiceKey, ClientConnectionConfig.SAVED_TOPICS));
                         

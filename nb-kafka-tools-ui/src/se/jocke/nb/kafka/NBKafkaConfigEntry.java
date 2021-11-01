@@ -1,9 +1,5 @@
 package se.jocke.nb.kafka;
 
-/**
- *
- * @author jocke
- */
 public final class NBKafkaConfigEntry {
 
     private final String name;

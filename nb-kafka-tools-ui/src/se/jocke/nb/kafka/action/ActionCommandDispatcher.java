@@ -12,24 +12,24 @@ import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toMap;
 import java.util.stream.Stream;
 
-public class ActionCommanDispatcher implements ActionListener {
+public class ActionCommandDispatcher implements ActionListener {
 
     private final Map<String, Consumer<ActionEvent>> commands;
 
-    public ActionCommanDispatcher(Map<String, Consumer<ActionEvent>> commands) {
+    public ActionCommandDispatcher(Map<String, Consumer<ActionEvent>> commands) {
         this.commands = new HashMap<>(commands);
     }
 
-    public static ActionCommanDispatcher ok(Consumer<ActionEvent> consumer) {
+    public static ActionCommandDispatcher ok(Consumer<ActionEvent> consumer) {
         return of("ok", consumer);
     }
 
-    public static ActionCommanDispatcher cancel(Consumer<ActionEvent> consumer) {
+    public static ActionCommandDispatcher cancel(Consumer<ActionEvent> consumer) {
         return of("cancel", consumer);
     }
 
-    public static ActionCommanDispatcher of(String command, Consumer<ActionEvent> consumer) {
-        return new ActionCommanDispatcher(Collections.singletonMap(command, consumer));
+    public static ActionCommandDispatcher of(String command, Consumer<ActionEvent> consumer) {
+        return new ActionCommandDispatcher(Collections.singletonMap(command, consumer));
     }
 
     @Override
@@ -39,10 +39,10 @@ public class ActionCommanDispatcher implements ActionListener {
         }
     }
 
-    public static ActionCommanDispatcher onAction(ActionCommanDispatcher dispatcher, ActionCommanDispatcher... commands) {
+    public static ActionCommandDispatcher onAction(ActionCommandDispatcher dispatcher, ActionCommandDispatcher... commands) {
         return Stream.concat(Stream.of(dispatcher), Arrays.asList(commands)
                 .stream())
                 .flatMap(acd -> acd.commands.entrySet().stream())
-                .collect(Collectors.collectingAndThen(toMap(Entry::getKey, Entry::getValue), ActionCommanDispatcher::new));
+                .collect(Collectors.collectingAndThen(toMap(Entry::getKey, Entry::getValue), ActionCommandDispatcher::new));
     }
 }

@@ -2,11 +2,11 @@ package se.jocke.nb.kafka.nodes.root;
 
 import java.util.Objects;
 
-public final class KafkaServiceKey {
+public final class NBKafkaServiceKey {
 
     private final String name;
 
-    public KafkaServiceKey(String name) {
+    public NBKafkaServiceKey(String name) {
         this.name = name;
     }
 
@@ -32,7 +32,7 @@ public final class KafkaServiceKey {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final KafkaServiceKey other = (KafkaServiceKey) obj;
+        final NBKafkaServiceKey other = (NBKafkaServiceKey) obj;
         if (!Objects.equals(this.name, other.name)) {
             return false;
         }

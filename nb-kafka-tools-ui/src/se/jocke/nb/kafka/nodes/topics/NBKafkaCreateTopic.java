@@ -8,7 +8,7 @@ import org.apache.kafka.common.config.TopicConfig;
  *
  * @author jocke
  */
-public class KafkaCreateTopic {
+public class NBKafkaCreateTopic {
 
     private final String name;
     private final Optional<Integer> numPartitions;
@@ -71,7 +71,7 @@ public class KafkaCreateTopic {
         }
     }
 
-    private KafkaCreateTopic(String name, Optional<Integer> numPartitions, Optional<Short> replicationFactor, Map<String, String> configs) {
+    private NBKafkaCreateTopic(String name, Optional<Integer> numPartitions, Optional<Short> replicationFactor, Map<String, String> configs) {
         this.name = name;
         this.numPartitions = numPartitions;
         this.replicationFactor = replicationFactor;
@@ -127,8 +127,8 @@ public class KafkaCreateTopic {
             return this;
         }
 
-        public KafkaCreateTopic build() {
-            return new KafkaCreateTopic(name, numPartitions, replicationFactor, configs);
+        public NBKafkaCreateTopic build() {
+            return new NBKafkaCreateTopic(name, numPartitions, replicationFactor, configs);
         }
     }
 }

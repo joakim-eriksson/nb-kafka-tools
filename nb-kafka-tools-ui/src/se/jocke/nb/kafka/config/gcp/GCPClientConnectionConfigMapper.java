@@ -16,13 +16,13 @@ import org.openide.util.lookup.ServiceProvider;
 import se.jocke.nb.kafka.preferences.NBKafkaPreferences;
 import se.jocke.nb.kafka.config.ClientConnectionConfig;
 import se.jocke.nb.kafka.config.ClientConnectionConfigMapper;
-import se.jocke.nb.kafka.nodes.root.KafkaServiceKey;
+import se.jocke.nb.kafka.nodes.root.NBKafkaServiceKey;
 
 @ServiceProvider(service = ClientConnectionConfigMapper.class)
 public class GCPClientConnectionConfigMapper implements ClientConnectionConfigMapper {
 
     @Override
-    public Map<String, Object> map(KafkaServiceKey key, Map<String, Object> config) {
+    public Map<String, Object> map(NBKafkaServiceKey key, Map<String, Object> config) {
         if (isEnabled(key) && NBKafkaPreferences.getString(key, ClientConnectionConfig.GCP_SECRET_ENCODED_KEY).isPresent()) {
             Map<String, Object> newConfig = new LinkedHashMap<>(config);
             try {
@@ -50,7 +50,7 @@ public class GCPClientConnectionConfigMapper implements ClientConnectionConfigMa
         return config;
     }
 
-    public boolean isEnabled(KafkaServiceKey key) {
+    public boolean isEnabled(NBKafkaServiceKey key) {
         return NBKafkaPreferences.getBoolean(key, ClientConnectionConfig.GCP_SECRET_ENABLED);
     }
 }

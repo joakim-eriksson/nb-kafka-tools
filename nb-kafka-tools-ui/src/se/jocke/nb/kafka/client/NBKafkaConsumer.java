@@ -28,12 +28,12 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.openide.util.Exceptions;
 import se.jocke.nb.kafka.Disposable;
-import se.jocke.nb.kafka.nodes.root.KafkaServiceKey;
-import se.jocke.nb.kafka.nodes.topics.KafkaTopic;
+import se.jocke.nb.kafka.nodes.root.NBKafkaServiceKey;
+import se.jocke.nb.kafka.nodes.topics.NBKafkaTopic;
 import se.jocke.nb.kafka.preferences.NBKafkaPreferences;
 
 public class NBKafkaConsumer implements Disposable {
-    private final Collection<KafkaTopic> topics;
+    private final Collection<NBKafkaTopic> topics;
     private final BlockingDeque<NBKafkaConsumerRecord> messages;
     private final ExecutorService executorService;
     private final AtomicBoolean started = new AtomicBoolean(false);
@@ -56,8 +56,8 @@ public class NBKafkaConsumer implements Disposable {
     private final int max;
 
     public NBKafkaConsumer(
-            KafkaServiceKey kafkaServiceKey,
-            KafkaTopic topic,
+            NBKafkaServiceKey kafkaServiceKey,
+            NBKafkaTopic topic,
             Consumer<NBKafkaConsumerRecord> observer,
             Predicate<NBKafkaConsumerRecord> predicates,
             Map<String, Object> props,
@@ -97,7 +97,7 @@ public class NBKafkaConsumer implements Disposable {
         if (started.compareAndSet(false, true)) {
             executorService.submit(() -> {
                 try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(configProps)) {
-                    Set<String> topicNames = topics.stream().map(KafkaTopic::getName).collect(toSet());
+                    Set<String> topicNames = topics.stream().map(NBKafkaTopic::getName).collect(toSet());
                     consumer.subscribe(topicNames);
                     while (!shutdown.get()) {
                         while (running.get()) {
@@ -198,8 +198,8 @@ public class NBKafkaConsumer implements Disposable {
 
     public static class Builder {
        
-        private KafkaServiceKey kafkaServiceKey;
-        private KafkaTopic topic;
+        private NBKafkaServiceKey kafkaServiceKey;
+        private NBKafkaTopic topic;
         private Consumer<NBKafkaConsumerRecord> observer;
         private Predicate<NBKafkaConsumerRecord> predicate = (record) -> true;
         private final Map<String, Object> props = new HashMap<>();
@@ -210,7 +210,7 @@ public class NBKafkaConsumer implements Disposable {
         public Builder() {
         }
 
-        public Builder topic(KafkaTopic topic) {
+        public Builder topic(NBKafkaTopic topic) {
             this.topic = topic;
             return this;
         }
@@ -250,7 +250,7 @@ public class NBKafkaConsumer implements Disposable {
             return this;
         }
         
-        public Builder kafkaServiceKey(KafkaServiceKey kafkaServiceKey) {
+        public Builder kafkaServiceKey(NBKafkaServiceKey kafkaServiceKey) {
             this.kafkaServiceKey = kafkaServiceKey;
             return this;
         }

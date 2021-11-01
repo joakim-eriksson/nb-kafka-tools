@@ -15,10 +15,10 @@ import org.apache.kafka.clients.admin.Config;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.common.config.ConfigResource;
 import org.openide.util.lookup.ServiceProvider;
-import se.jocke.nb.kafka.nodes.root.KafkaServiceKey;
-import se.jocke.nb.kafka.nodes.topics.KafkaCreateTopic;
+import se.jocke.nb.kafka.nodes.root.NBKafkaServiceKey;
+import se.jocke.nb.kafka.nodes.topics.NBKafkaCreateTopic;
 import se.jocke.nb.kafka.preferences.NBKafkaPreferences;
-import se.jocke.nb.kafka.nodes.topics.KafkaTopic;
+import se.jocke.nb.kafka.nodes.topics.NBKafkaTopic;
 
 /**
  *
@@ -27,10 +27,10 @@ import se.jocke.nb.kafka.nodes.topics.KafkaTopic;
 @ServiceProvider(service = AdminClientService.class)
 public final class AdminClientServiceImpl implements Closeable, AdminClientService {
 
-    private final Map<KafkaServiceKey, AdminClient> clients = new ConcurrentHashMap<>();
+    private final Map<NBKafkaServiceKey, AdminClient> clients = new ConcurrentHashMap<>();
 
     @Override
-    public void listTopics(KafkaServiceKey kafkaServiceKey, Consumer<Collection<KafkaTopic>> namesConsumer, Consumer<Throwable> throwConsumer) {
+    public void listTopics(NBKafkaServiceKey kafkaServiceKey, Consumer<Collection<NBKafkaTopic>> namesConsumer, Consumer<Throwable> throwConsumer) {
         getAdminClient(kafkaServiceKey).listTopics().names().whenComplete((Set<String> names, Throwable ex) -> {
             stopOnException(ex, throwConsumer, () -> {
                 getAdminClient(kafkaServiceKey).describeConfigs(mapTopicNameToResourceDesc(names)).all().whenComplete((descs, exDesc) -> {
@@ -52,15 +52,15 @@ public final class AdminClientServiceImpl implements Closeable, AdminClientServi
         return names.stream().map(nm -> new ConfigResource(ConfigResource.Type.TOPIC, nm)).collect(toSet());
     }
 
-    private Set<KafkaTopic> mapResourceDescToKafkaTopic(Map<ConfigResource, Config> descs) {
+    private Set<NBKafkaTopic> mapResourceDescToKafkaTopic(Map<ConfigResource, Config> descs) {
         return descs.entrySet()
                 .stream()
-                .map(entry -> new KafkaTopic(entry.getKey().name(), ofNullable(entry.getValue())))
+                .map(entry -> new NBKafkaTopic(entry.getKey().name(), ofNullable(entry.getValue())))
                 .collect(toSet());
     }
 
     @Override
-    public void createTopics(KafkaServiceKey kafkaServiceKey, Collection<KafkaCreateTopic> createTopics, Runnable runnable, Consumer<Throwable> throwConsumer) {
+    public void createTopics(NBKafkaServiceKey kafkaServiceKey, Collection<NBKafkaCreateTopic> createTopics, Runnable runnable, Consumer<Throwable> throwConsumer) {
 
         List<NewTopic> newTopics = createTopics
                 .stream()
@@ -77,7 +77,7 @@ public final class AdminClientServiceImpl implements Closeable, AdminClientServi
         clients.values().forEach(AdminClient::close);
     }
 
-    private AdminClient getAdminClient(KafkaServiceKey key) {
+    private AdminClient getAdminClient(NBKafkaServiceKey key) {
         return clients.computeIfAbsent(key, (mapKey) -> AdminClient.create(NBKafkaPreferences.readAdminConfigs(key)));
     }
 }

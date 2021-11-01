@@ -15,19 +15,19 @@ import se.jocke.nb.kafka.NBKafkaConfigEntry;
 import se.jocke.nb.kafka.window.RecordsTopComponent;
 import static se.jocke.nb.kafka.action.Actions.actions;
 import static se.jocke.nb.kafka.action.Actions.action;
-import se.jocke.nb.kafka.nodes.root.KafkaServiceKey;
+import se.jocke.nb.kafka.nodes.root.NBKafkaServiceKey;
 
 /**
  *
  * @author jocke
  */
-public final class KafkaTopicNode extends AbstractNode {
+public final class NBKafkaTopicNode extends AbstractNode {
 
-    private final KafkaTopic kafkaTopic;
+    private final NBKafkaTopic kafkaTopic;
 
-    private final KafkaServiceKey kafkaServiceKey;
+    private final NBKafkaServiceKey kafkaServiceKey;
 
-    public KafkaTopicNode(KafkaServiceKey kafkaServiceKey, KafkaTopic kafkaTopic) {
+    public NBKafkaTopicNode(NBKafkaServiceKey kafkaServiceKey, NBKafkaTopic kafkaTopic) {
         super(Children.LEAF, Lookups.singleton(kafkaTopic));
         this.kafkaTopic = kafkaTopic;
         this.kafkaServiceKey = kafkaServiceKey;

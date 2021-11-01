@@ -30,7 +30,7 @@ public class TopicEditor extends javax.swing.JPanel {
             @Override
             public Node.PropertySet[] getPropertySets() {
                 Sheet.Set set = Sheet.createPropertiesSet();
-                Arrays.asList(KafkaCreateTopic.CreateProperties.values())
+                Arrays.asList(NBKafkaCreateTopic.CreateProperties.values())
                         .stream()
                         .map(cp -> createProp(props, cp))
                         .forEach(set::put);
@@ -40,7 +40,7 @@ public class TopicEditor extends javax.swing.JPanel {
         kps.setNodes(new Node[]{abstractNode});
     }
 
-    private PropertySupport<?> createProp(Map<String, Object> props, KafkaCreateTopic.CreateProperties cp) {
+    private PropertySupport<?> createProp(Map<String, Object> props, NBKafkaCreateTopic.CreateProperties cp) {
         return new PropertySupport.ReadWrite(cp.getKey(), cp.getType(), cp.getKey(), cp.getDescription()) {
             @Override
             public Object getValue() throws IllegalAccessException, InvocationTargetException {

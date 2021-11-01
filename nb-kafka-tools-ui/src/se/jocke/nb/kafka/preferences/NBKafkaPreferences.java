@@ -21,7 +21,7 @@ import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.NbPreferences;
 import se.jocke.nb.kafka.config.ClientConnectionConfigMapper;
-import se.jocke.nb.kafka.nodes.root.KafkaServiceKey;
+import se.jocke.nb.kafka.nodes.root.NBKafkaServiceKey;
 
 public final class NBKafkaPreferences {
 
@@ -30,25 +30,25 @@ public final class NBKafkaPreferences {
     private NBKafkaPreferences() {
     }
 
-    public static Map<String, Object> readConsumerConfigs(KafkaServiceKey key) {
+    public static Map<String, Object> readConsumerConfigs(NBKafkaServiceKey key) {
         return readConfigsByType(key, c -> c.isConsumerConfig());
     }
 
-    public static Map<String, Object> readProducerConfigs(KafkaServiceKey key) {
+    public static Map<String, Object> readProducerConfigs(NBKafkaServiceKey key) {
         return readConfigsByType(key, c -> c.isProducerConfig());
     }
 
-    public static Map<String, Object> readAdminConfigs(KafkaServiceKey key) {
+    public static Map<String, Object> readAdminConfigs(NBKafkaServiceKey key) {
         return readConfigsByType(key, c -> c.isAdminConfig());
     }
 
-    public static Map<ClientConnectionConfig, Object> readAll(KafkaServiceKey key) {
+    public static Map<ClientConnectionConfig, Object> readAll(NBKafkaServiceKey key) {
         return readConfigsByType(key, (k) -> true).entrySet()
                 .stream().map(e -> new SimpleEntry<>(ClientConnectionConfig.ofKey(e.getKey()), e.getValue()))
                 .collect(toMap(Entry::getKey, Entry::getValue));
     }
 
-    public static Map<String, Object> readConfigsByType(KafkaServiceKey kafkaServiceKey, Predicate<ClientConnectionConfig> predicate) {
+    public static Map<String, Object> readConfigsByType(NBKafkaServiceKey kafkaServiceKey, Predicate<ClientConnectionConfig> predicate) {
         try {
             Map<String, Object> conf = Arrays.stream(PREFS_FOR_MODULE.node(kafkaServiceKey.getName()).keys())
                     .filter(key -> predicate.test(ClientConnectionConfig.ofKey(key)))
@@ -70,12 +70,12 @@ public final class NBKafkaPreferences {
         }
     }
 
-    public static void store(KafkaServiceKey key, Map<ClientConnectionConfig, Object> config) {
+    public static void store(NBKafkaServiceKey key, Map<ClientConnectionConfig, Object> config) {
         config.forEach((conf, value) -> put(key, conf, value));
         sync(key);
     }
 
-    public static void put(KafkaServiceKey key, ClientConnectionConfig config, Object value) {
+    public static void put(NBKafkaServiceKey key, ClientConnectionConfig config, Object value) {
         try {
             Preferences preferences = PREFS_FOR_MODULE.node(key.getName());
             Set<String> keySet = new HashSet<>(Arrays.asList(preferences.keys()));
@@ -99,7 +99,7 @@ public final class NBKafkaPreferences {
         }
     }
 
-    public static Optional<Object> get(KafkaServiceKey key, ClientConnectionConfig config) {
+    public static Optional<Object> get(NBKafkaServiceKey key, ClientConnectionConfig config) {
         try {
             if (PREFS_FOR_MODULE.nodeExists(key.getName())) {
                 Preferences preferences = PREFS_FOR_MODULE.node(key.getName());
@@ -128,19 +128,19 @@ public final class NBKafkaPreferences {
     }
     
     //JEP 301 Closed / Withdrawn ):
-    public static boolean getBoolean(KafkaServiceKey key, ClientConnectionConfig config) {
+    public static boolean getBoolean(NBKafkaServiceKey key, ClientConnectionConfig config) {
         return get(key, config).map(conf -> Boolean.class.cast(conf)).orElse(Boolean.FALSE);
     }
 
-    public static Optional<String> getString(KafkaServiceKey key, ClientConnectionConfig config) {
+    public static Optional<String> getString(NBKafkaServiceKey key, ClientConnectionConfig config) {
         return get(key, config).map(conf -> String.class.cast(conf));
     }
     
-    public static Set<String> getStrings(KafkaServiceKey key, ClientConnectionConfig config) {
+    public static Set<String> getStrings(NBKafkaServiceKey key, ClientConnectionConfig config) {
         return get(key, config).map(conf -> (Set<String>) conf).orElse(Collections.emptySet());
     }
 
-    public static void sync(KafkaServiceKey key) {
+    public static void sync(NBKafkaServiceKey key) {
         Preferences preferences = PREFS_FOR_MODULE.node(key.getName());
         try {
             preferences.sync();

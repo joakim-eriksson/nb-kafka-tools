@@ -4,7 +4,7 @@ import java.util.concurrent.Future;
 import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
-import se.jocke.nb.kafka.nodes.root.KafkaServiceKey;
+import se.jocke.nb.kafka.nodes.root.NBKafkaServiceKey;
 
 /**
  *
@@ -12,7 +12,7 @@ import se.jocke.nb.kafka.nodes.root.KafkaServiceKey;
  */
 public interface NBKafkaProducer  {
 
-    Future<RecordMetadata> send(KafkaServiceKey kafkaServiceKey, ProducerRecord<String, String> record, Callback callback);
+    Future<RecordMetadata> send(NBKafkaServiceKey kafkaServiceKey, ProducerRecord<String, String> record, Callback callback);
     
     void close();
     

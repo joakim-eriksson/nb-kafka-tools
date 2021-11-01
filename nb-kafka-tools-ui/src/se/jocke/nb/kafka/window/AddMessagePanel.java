@@ -22,11 +22,11 @@ import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import se.jocke.nb.kafka.client.NBKafkaProducer;
-import se.jocke.nb.kafka.nodes.topics.KafkaTopic;
+import se.jocke.nb.kafka.nodes.topics.NBKafkaTopic;
 import static se.jocke.nb.kafka.window.RecordsTopComponent.A_NEW;
 import static se.jocke.nb.kafka.window.RecordsTopComponent.KEYLESS;
-import static se.jocke.nb.kafka.action.ActionCommanDispatcher.*;
-import se.jocke.nb.kafka.nodes.root.KafkaServiceKey;
+import static se.jocke.nb.kafka.action.ActionCommandDispatcher.*;
+import se.jocke.nb.kafka.nodes.root.NBKafkaServiceKey;
 
 /**
  *
@@ -36,13 +36,13 @@ public class AddMessagePanel extends javax.swing.JPanel {
 
     private static final Logger LOG = Logger.getLogger(MethodHandles.lookup().lookupClass().getName());
 
-    private final KafkaTopic topic;
+    private final NBKafkaTopic topic;
 
     private static final Set<String> NULL_KEYS = Sets.newHashSet(A_NEW, KEYLESS);
 
-    private final KafkaServiceKey kafkaServiceKey;
+    private final NBKafkaServiceKey kafkaServiceKey;
 
-    public AddMessagePanel(KafkaServiceKey kafkaServiceKey, KafkaTopic topic) {
+    public AddMessagePanel(NBKafkaServiceKey kafkaServiceKey, NBKafkaTopic topic) {
         super();
         this.topic = topic;
         initComponents();

@@ -15,14 +15,14 @@ import org.openide.nodes.Sheet;
  *
  * @author jocke
  */
-public class KafkaServiceEditor extends javax.swing.JPanel {
+public class NBKafkaServiceEditor extends javax.swing.JPanel {
 
     private final Map<ClientConnectionConfig, Object> props;
 
     /**
      * Creates new form EditKafkaServicePanel
      */
-    public KafkaServiceEditor() {
+    public NBKafkaServiceEditor() {
         this.props = new LinkedHashMap<>();
         initComponents();
         PropertySheet kps = (PropertySheet) propertiesPanel;
@@ -63,9 +63,9 @@ public class KafkaServiceEditor extends javax.swing.JPanel {
         nameTextField = new javax.swing.JTextField();
         propertiesPanel = new PropertySheet();
 
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(KafkaServiceEditor.class, "KafkaServiceEditor.jLabel1.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(NBKafkaServiceEditor.class, "NBKafkaServiceEditor.jLabel1.text")); // NOI18N
 
-        nameTextField.setText(org.openide.util.NbBundle.getMessage(KafkaServiceEditor.class, "KafkaServiceEditor.nameTextField.text")); // NOI18N
+        nameTextField.setText(org.openide.util.NbBundle.getMessage(NBKafkaServiceEditor.class, "NBKafkaServiceEditor.nameTextField.text")); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);

@@ -8,7 +8,7 @@
                 <attr name="name" stringvalue="kafka"/>
                 <attr name="instanceCreate" methodvalue="org.openide.nodes.NodeOp.factory"/>
                 <attr bundlevalue="se.jocke.nb.kafka.nodes.root.Bundle#LBL_KafkaNode" name="displayName"/>
-                <attr name="original" newvalue="se.jocke.nb.kafka.nodes.root.KafkaServiceRootNode"/>
+                <attr name="original" newvalue="se.jocke.nb.kafka.nodes.root.NBKafkaServiceRootNode"/>
                 <attr bundlevalue="se.jocke.nb.kafka.nodes.root.Bundle#TIP_KafkaNode" name="shortDescription"/>
                 <attr intvalue="9999" name="position"/>
             </file>

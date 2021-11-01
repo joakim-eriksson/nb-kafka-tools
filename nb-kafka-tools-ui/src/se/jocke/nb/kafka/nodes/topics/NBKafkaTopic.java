@@ -11,13 +11,13 @@ import se.jocke.nb.kafka.NBKafkaConfigEntry;
  *
  * @author jocke
  */
-public final class KafkaTopic {
+public final class NBKafkaTopic {
 
     private final String name;
 
     private final List<NBKafkaConfigEntry> configs;
 
-    public KafkaTopic(String name, Optional<Config> optionalConf) {
+    public NBKafkaTopic(String name, Optional<Config> optionalConf) {
         this.name = name;
         this.configs = optionalConf.
                 map(conf -> mapToConfigs(conf))

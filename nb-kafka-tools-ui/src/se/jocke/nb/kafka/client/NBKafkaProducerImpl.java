@@ -11,16 +11,16 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.openide.util.lookup.ServiceProvider;
-import se.jocke.nb.kafka.nodes.root.KafkaServiceKey;
+import se.jocke.nb.kafka.nodes.root.NBKafkaServiceKey;
 import se.jocke.nb.kafka.preferences.NBKafkaPreferences;
 
 @ServiceProvider(service = NBKafkaProducer.class)
 public final class NBKafkaProducerImpl implements NBKafkaProducer {
 
-    private final Map<KafkaServiceKey, KafkaProducer<String, String>> producers = new ConcurrentHashMap<>();
+    private final Map<NBKafkaServiceKey, KafkaProducer<String, String>> producers = new ConcurrentHashMap<>();
 
     @Override
-    public Future<RecordMetadata> send(KafkaServiceKey kafkaServiceKey, ProducerRecord<String, String> record, Callback callback) {
+    public Future<RecordMetadata> send(NBKafkaServiceKey kafkaServiceKey, ProducerRecord<String, String> record, Callback callback) {
         return getProducer(kafkaServiceKey).send(record, callback);
     }
 
@@ -29,7 +29,7 @@ public final class NBKafkaProducerImpl implements NBKafkaProducer {
         producers.values().stream().forEach(KafkaProducer::close);
     }
 
-    private KafkaProducer<String, String> getProducer(KafkaServiceKey key) {
+    private KafkaProducer<String, String> getProducer(NBKafkaServiceKey key) {
         return producers.computeIfAbsent(key, (mapKey) -> {
             Map<String, Object> prefs = NBKafkaPreferences.readProducerConfigs(mapKey);
             Map<String, Object> configProps = new HashMap<>(prefs);

@@ -12,7 +12,7 @@ import javax.swing.JComponent;
 import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
 import org.openide.util.lookup.InstanceContent;
-import static se.jocke.nb.kafka.action.ActionCommanDispatcher.*;
+import static se.jocke.nb.kafka.action.ActionCommandDispatcher.*;
 import se.jocke.nb.kafka.client.NBKafkaConsumerRecord;
 import se.jocke.nb.kafka.options.form.DataFormInputVerifier;
 import se.jocke.nb.kafka.options.form.LabelValidationFailedDisplay;

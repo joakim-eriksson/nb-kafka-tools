@@ -1,6 +1,6 @@
 package se.jocke.nb.kafka.nodes.root;
 
-import se.jocke.nb.kafka.nodes.topics.KafkaTopicNode;
+import se.jocke.nb.kafka.nodes.topics.NBKafkaTopicNode;
 import java.lang.invoke.MethodHandles;
 import java.util.Collection;
 import java.util.List;
@@ -17,36 +17,36 @@ import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import se.jocke.nb.kafka.client.AdminClientService;
 import se.jocke.nb.kafka.config.ClientConnectionConfig;
-import se.jocke.nb.kafka.nodes.topics.KafkaTopic;
+import se.jocke.nb.kafka.nodes.topics.NBKafkaTopic;
 import se.jocke.nb.kafka.preferences.NBKafkaPreferences;
 
 /**
  *
  * @author jocke
  */
-public class KafkaTopicChildFactory extends ChildFactory<KafkaTopic> {
+public class NBKafkaTopicChildFactory extends ChildFactory<NBKafkaTopic> {
 
     private static final Logger logger = Logger.getLogger(MethodHandles.lookup().lookupClass().getName());
 
-    private final KafkaServiceKey kafkaServiceKey;
+    private final NBKafkaServiceKey kafkaServiceKey;
 
-    public KafkaTopicChildFactory(KafkaServiceKey kafkaService) {
+    public NBKafkaTopicChildFactory(NBKafkaServiceKey kafkaService) {
         this.kafkaServiceKey = kafkaService;
     }
 
     @Override
-    protected boolean createKeys(List<KafkaTopic> topics) {
+    protected boolean createKeys(List<NBKafkaTopic> topics) {
 
         if (!NBKafkaPreferences.getBoolean(kafkaServiceKey, ClientConnectionConfig.LIST_TOPICS_DISABLED)) {
 
-            BlockingQueue<Collection<KafkaTopic>> topicTransfer = new LinkedBlockingDeque<>();
+            BlockingQueue<Collection<NBKafkaTopic>> topicTransfer = new LinkedBlockingDeque<>();
 
             AdminClientService adminClientService = Lookup.getDefault().lookup(AdminClientService.class);
             adminClientService.listTopics(kafkaServiceKey, topicTransfer::offer, throwable -> {
                 onException(topics, throwable);
             });
 
-            Collection<KafkaTopic> poll;
+            Collection<NBKafkaTopic> poll;
             try {
                 poll = topicTransfer.poll(20, TimeUnit.SECONDS);
                 if (poll != null) {
@@ -59,20 +59,20 @@ public class KafkaTopicChildFactory extends ChildFactory<KafkaTopic> {
 
         NBKafkaPreferences.getStrings(kafkaServiceKey, ClientConnectionConfig.SAVED_TOPICS)
                 .stream()
-                .map(name -> new KafkaTopic(name, Optional.empty()))
+                .map(name -> new NBKafkaTopic(name, Optional.empty()))
                 .filter(not(topics::contains))
                 .forEach(topics::add);
 
         return true;
     }
 
-    public void onException(List<KafkaTopic> topics, Throwable t) {
+    public void onException(List<NBKafkaTopic> topics, Throwable t) {
         logger.log(Level.SEVERE, "Faild to list topics", t);
     }
 
     @Override
-    protected Node createNodeForKey(KafkaTopic key) {
-        return new KafkaTopicNode(kafkaServiceKey, key);
+    protected Node createNodeForKey(NBKafkaTopic key) {
+        return new NBKafkaTopicNode(kafkaServiceKey, key);
     }
 
     public void refresh() {
