@@ -2,6 +2,9 @@ package se.jocke.nb.kafka.preferences;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Sets;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import se.jocke.nb.kafka.config.ClientConnectionConfig;
 import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleEntry;
@@ -17,6 +20,7 @@ import java.util.function.Predicate;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import static java.util.stream.Collectors.toMap;
+import java.util.stream.Stream;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.NbPreferences;
@@ -56,12 +60,12 @@ public final class NBKafkaPreferences {
                     .filter(entry -> entry.getValue().isPresent())
                     .map(entry -> new AbstractMap.SimpleEntry<>(entry.getKey(), entry.getValue().get()))
                     .collect(toMap(Entry::getKey, Entry::getValue));
-            
+
             //No overrides allowed
             Lookup.getDefault()
                     .lookupAll(ClientConnectionConfigMapper.class)
                     .stream()
-                    .forEach(mapper -> mapper.map(kafkaServiceKey, new LinkedHashMap<>(conf)).forEach(conf::putIfAbsent));            
+                    .forEach(mapper -> mapper.map(kafkaServiceKey, new LinkedHashMap<>(conf)).forEach(conf::putIfAbsent));
 
             return conf;
 
@@ -90,7 +94,7 @@ public final class NBKafkaPreferences {
             } else if (config.getPropertyType() == Double.class) {
                 preferences.putDouble(config.getKey(), (double) value);
             } else if (config.getPropertyType() == Set.class) {
-                preferences.put(config.getKey(), String.join(",", ((Set<String>) value)));
+                preferences.put(config.getKey(), String.join(",", ((Iterable<? extends CharSequence>) value)));
             } else {
                 throw new IllegalStateException("Unknown type " + config.getPropertyType());
             }
@@ -126,7 +130,7 @@ public final class NBKafkaPreferences {
 
         return Optional.empty();
     }
-    
+
     //JEP 301 Closed / Withdrawn ):
     public static boolean getBoolean(NBKafkaServiceKey key, ClientConnectionConfig config) {
         return get(key, config).map(conf -> Boolean.class.cast(conf)).orElse(Boolean.FALSE);
@@ -135,7 +139,7 @@ public final class NBKafkaPreferences {
     public static Optional<String> getString(NBKafkaServiceKey key, ClientConnectionConfig config) {
         return get(key, config).map(conf -> String.class.cast(conf));
     }
-    
+
     public static Set<String> getStrings(NBKafkaServiceKey key, ClientConnectionConfig config) {
         return get(key, config).map(conf -> (Set<String>) conf).orElse(Collections.emptySet());
     }
@@ -146,6 +150,25 @@ public final class NBKafkaPreferences {
             preferences.sync();
         } catch (BackingStoreException ex) {
             Exceptions.printStackTrace(ex);
+        }
+    }
+
+    public static void exportProperties(NBKafkaServiceKey key, OutputStream out) {
+        try {
+            if (PREFS_FOR_MODULE.nodeExists(key.getName())) {
+                Preferences preferences = PREFS_FOR_MODULE.node(key.getName());
+                Stream.of(preferences.keys())
+                        .map(name -> (name + "=" + preferences.get(name, "") + "\n").getBytes())
+                        .forEachOrdered(bytes -> {
+                            try {
+                                out.write(bytes);
+                            } catch (IOException ex) {
+                                throw new UncheckedIOException(ex);
+                            }
+                        });
+            }
+        } catch (BackingStoreException e) {
+            throw new IllegalStateException(e);
         }
     }
 

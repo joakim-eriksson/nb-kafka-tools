@@ -3,7 +3,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.AbstractMap;
 import java.util.Map;
 import org.openide.nodes.PropertySupport;
-import se.jocke.nb.kafka.config.ClientConnectionConfig;
 
 @SuppressWarnings("rawtypes")
 public class ClientConnectionConfigPropertySupport extends PropertySupport.ReadWrite {
@@ -22,6 +21,7 @@ public class ClientConnectionConfigPropertySupport extends PropertySupport.ReadW
         super(config.getKey(), config.getPropertyType(), config.getKey(), config.getDesc());
         this.config = config;
         this.props = props;
+       
     }
 
     @Override

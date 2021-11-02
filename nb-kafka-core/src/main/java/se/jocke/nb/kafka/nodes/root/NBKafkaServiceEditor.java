@@ -1,13 +1,23 @@
 package se.jocke.nb.kafka.nodes.root;
 
+import com.google.common.io.Files;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileFilter;
 import org.openide.explorer.propertysheet.PropertySheet;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
 import org.openide.nodes.Node;
 import org.openide.nodes.Sheet;
+import org.openide.util.Exceptions;
 import se.jocke.nb.kafka.config.ClientConnectionConfig;
 import se.jocke.nb.kafka.config.ClientConnectionConfigPropertySupport;
 
@@ -19,6 +29,8 @@ public class NBKafkaServiceEditor extends javax.swing.JPanel {
 
     private final Map<ClientConnectionConfig, Object> props;
 
+    private final ServiceEditorNode node;
+
     /**
      * Creates new form EditKafkaServicePanel
      */
@@ -26,20 +38,47 @@ public class NBKafkaServiceEditor extends javax.swing.JPanel {
         this.props = new LinkedHashMap<>();
         initComponents();
         PropertySheet kps = (PropertySheet) propertiesPanel;
-        AbstractNode abstractNode = new AbstractNode(Children.LEAF) {
-            @Override
-            public Node.PropertySet[] getPropertySets() {
-                Sheet.Set set = Sheet.createPropertiesSet();
-                set.setDisplayName("Connection config");
-                Arrays.asList(ClientConnectionConfig.values())
-                        .stream()
-                        .map(conf -> new ClientConnectionConfigPropertySupport(conf, props))
-                        .forEach(set::put);
-                return new PropertySet[]{set};
-            }
-        };
+        this.node = new ServiceEditorNode();
 
-        kps.setNodes(new Node[]{abstractNode});
+        kps.setNodes(new Node[]{this.node});
+
+        importFileChooser.setFileFilter(new FileFilter() {
+            @Override
+            public boolean accept(File file) {
+                return file.getName().endsWith(".properties") || file.isDirectory();
+            }
+
+            @Override
+            public String getDescription() {
+                return "Java properties";
+            }
+        });
+    }
+
+    private final class ServiceEditorNode extends AbstractNode {
+
+        public ServiceEditorNode() {
+            super(Children.LEAF);
+        }
+
+        @Override
+        public Node.PropertySet[] getPropertySets() {
+            Sheet.Set set = Sheet.createPropertiesSet();
+            set.setDisplayName("Connection config");
+            Arrays.asList(ClientConnectionConfig.values())
+                    .stream()
+                    .map(conf -> new ClientConnectionConfigPropertySupport(conf, props))
+                    .forEach(set::put);
+            return new PropertySet[]{set};
+        }
+
+        @Override
+        public void setValue(String attributeName, Object value) {
+            ClientConnectionConfig config = ClientConnectionConfig.ofKey(attributeName);
+            Object currentValue = props.get(config);
+            props.put(ClientConnectionConfig.ofKey(attributeName), value);
+            firePropertyChange(config.getKey(), currentValue, value);
+        }
     }
 
     public Map<ClientConnectionConfig, Object> getProps() {
@@ -59,13 +98,28 @@ public class NBKafkaServiceEditor extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        importFileChooser = new javax.swing.JFileChooser();
         jLabel1 = new javax.swing.JLabel();
         nameTextField = new javax.swing.JTextField();
         propertiesPanel = new PropertySheet();
+        importButton = new javax.swing.JButton();
+
+        importFileChooser.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                importFileChooserActionPerformed(evt);
+            }
+        });
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(NBKafkaServiceEditor.class, "NBKafkaServiceEditor.jLabel1.text")); // NOI18N
 
         nameTextField.setText(org.openide.util.NbBundle.getMessage(NBKafkaServiceEditor.class, "NBKafkaServiceEditor.nameTextField.text")); // NOI18N
+
+        org.openide.awt.Mnemonics.setLocalizedText(importButton, org.openide.util.NbBundle.getMessage(NBKafkaServiceEditor.class, "NBKafkaServiceEditor.importButton.text")); // NOI18N
+        importButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                importButtonActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -78,7 +132,10 @@ public class NBKafkaServiceEditor extends javax.swing.JPanel {
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(nameTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 323, Short.MAX_VALUE)))
+                        .addComponent(nameTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 481, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(importButton)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -89,13 +146,45 @@ public class NBKafkaServiceEditor extends javax.swing.JPanel {
                     .addComponent(jLabel1)
                     .addComponent(nameTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(propertiesPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(propertiesPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 430, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(importButton)
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void importButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_importButtonActionPerformed
+        importFileChooser.showOpenDialog(this);
+    }//GEN-LAST:event_importButtonActionPerformed
+
+    private void importFileChooserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_importFileChooserActionPerformed
+
+        if (JFileChooser.APPROVE_SELECTION.equals(evt.getActionCommand())) {
+            File selectedFile = importFileChooser.getSelectedFile();
+            try {
+                Files.readLines(selectedFile, Charset.forName("UTF-8"))
+                        .stream()
+                        .map(line -> line.split("=", 2))
+                        .filter(array -> array.length == 2)
+                        .map(array -> new AbstractMap.SimpleEntry<>(array[0].trim(), array[1].trim()))
+                        .forEachOrdered(entry -> {
+                            ClientConnectionConfig conf = ClientConnectionConfig.ofKey(entry.getKey());
+                            if (conf != null) {
+                                node.setValue(conf.getKey(), conf.valueFromString(entry.getValue()));
+                            } else {
+                                Logger.getLogger(NBKafkaServiceEditor.class.getName()).log(Level.INFO, "No config support for key {0}", entry.getKey());
+                            }
+                        });
+            } catch (IOException ex) {
+                Exceptions.printStackTrace(ex);
+            }
+        }
+    }//GEN-LAST:event_importFileChooserActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton importButton;
+    private javax.swing.JFileChooser importFileChooser;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JTextField nameTextField;
     private javax.swing.JPanel propertiesPanel;

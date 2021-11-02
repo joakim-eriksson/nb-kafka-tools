@@ -1,5 +1,7 @@
 package se.jocke.nb.kafka.nodes.root;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -12,6 +14,10 @@ import static java.util.stream.Collectors.toMap;
 import javax.swing.Action;
 import org.openide.*;
 import org.openide.actions.PropertiesAction;
+import org.openide.cookies.OpenCookie;
+import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil;
+import org.openide.loaders.DataObject;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
 import org.openide.nodes.Sheet;
@@ -132,13 +138,37 @@ public class NBKafkaServiceNode extends AbstractNode {
         DialogDisplayer.getDefault().notifyLater(descriptor);
     }
 
+    private void exportSettings() {
+        try {
+            
+            FileObject fob = FileUtil.createMemoryFileSystem().getRoot().createData(kafkaServiceKey.getName(), "properties");
+
+            try (OutputStream outputStream = fob.getOutputStream()) {
+                NBKafkaPreferences.exportProperties(kafkaServiceKey, outputStream);
+                outputStream.flush();
+            }
+
+            DataObject dob = DataObject.find(fob);
+            OpenCookie openCookie = dob.getLookup().lookup(OpenCookie.class);
+
+            if (openCookie != null) {
+                openCookie.open();
+            }
+            
+        } catch (IOException ex) {
+            Exceptions.printStackTrace(ex);
+        }
+    }
+
     @Override
     public Action[] getActions(boolean context) {
         return actions(
                 action("Refresh", this::refreshTopics),
                 action("Create Topic", this::showTopicEditor),
                 action("View topic", this::viewTopic),
+                action("Export settings", this::exportSettings),
                 SystemAction.get(PropertiesAction.class)
         );
     }
+
 }
