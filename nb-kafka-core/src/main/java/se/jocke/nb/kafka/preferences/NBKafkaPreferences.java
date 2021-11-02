@@ -1,11 +1,8 @@
 package se.jocke.nb.kafka.preferences;
 
-import com.google.common.base.Splitter;
-import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
-import se.jocke.nb.kafka.config.ClientConnectionConfig;
 import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Arrays;
@@ -24,6 +21,7 @@ import java.util.stream.Stream;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.NbPreferences;
+import se.jocke.nb.kafka.config.ClientConnectionConfig;
 import se.jocke.nb.kafka.config.ClientConnectionConfigMapper;
 import se.jocke.nb.kafka.nodes.root.NBKafkaServiceKey;
 
@@ -85,18 +83,8 @@ public final class NBKafkaPreferences {
             Set<String> keySet = new HashSet<>(Arrays.asList(preferences.keys()));
             if (value == null && keySet.contains(config.getKey())) {
                 preferences.remove(config.getKey());
-            } else if (config.getPropertyType() == Boolean.class) {
-                preferences.putBoolean(config.getKey(), (boolean) value);
-            } else if (config.getPropertyType() == String.class) {
-                preferences.put(config.getKey(), (String) value);
-            } else if (config.getPropertyType() == Long.class) {
-                preferences.putLong(config.getKey(), (Long) value);
-            } else if (config.getPropertyType() == Double.class) {
-                preferences.putDouble(config.getKey(), (double) value);
-            } else if (config.getPropertyType() == Set.class) {
-                preferences.put(config.getKey(), String.join(",", ((Iterable<? extends CharSequence>) value)));
             } else {
-                throw new IllegalStateException("Unknown type " + config.getPropertyType());
+                config.putPeference(preferences, value);
             }
         } catch (BackingStoreException e) {
             throw new IllegalStateException(e);
@@ -109,19 +97,7 @@ public final class NBKafkaPreferences {
                 Preferences preferences = PREFS_FOR_MODULE.node(key.getName());
                 Set<String> keySet = new HashSet<>(Arrays.asList(preferences.keys()));
                 if (keySet.contains(config.getKey())) {
-                    if (config.getPropertyType() == Boolean.class) {
-                        return Optional.ofNullable(preferences.getBoolean(config.getKey(), false));
-                    } else if (config.getPropertyType() == String.class) {
-                        return Optional.ofNullable(preferences.get(config.getKey(), null));
-                    } else if (config.getPropertyType() == Long.class) {
-                        return Optional.ofNullable(preferences.getLong(config.getKey(), -1));
-                    } else if (config.getPropertyType() == Double.class) {
-                        return Optional.ofNullable(preferences.getDouble(config.getKey(), -1));
-                    } else if (config.getPropertyType() == Set.class) {
-                        return Optional.ofNullable(Sets.newLinkedHashSet(Splitter.on(",").omitEmptyStrings().split(preferences.get(config.getKey(), ""))));
-                    } else {
-                        throw new IllegalStateException("Unknown type " + config.getPropertyType());
-                    }
+                    return Optional.of(config.getFromPeferences(preferences));
                 }
             }
         } catch (BackingStoreException e) {

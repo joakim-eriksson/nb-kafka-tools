@@ -7,7 +7,9 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.prefs.Preferences;
 import static java.util.stream.Collectors.toMap;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.common.config.SaslConfigs;
@@ -69,6 +71,16 @@ public enum ClientConnectionConfig {
             Set.class, s -> Sets.newLinkedHashSet(Splitter.on(",").omitEmptyStrings().split(s))
     );
 
+    private static final Map<Class<?>, BiConsumer<Preferences, Map.Entry<ClientConnectionConfig, Object>>> MAPPERS
+            = Map.of(
+                    Boolean.class, (prefs, entry) -> prefs.putBoolean(entry.getKey().key, Boolean.class.cast(entry.getValue())),
+                    String.class, (prefs, entry) -> prefs.put(entry.getKey().key, String.class.cast(entry.getValue())),
+                    Double.class, (prefs, entry) -> prefs.putDouble(entry.getKey().key, Double.class.cast(entry.getValue())),
+                    Long.class, (prefs, entry) -> prefs.putLong(entry.getKey().key, Long.class.cast(entry.getValue())),
+                    Integer.class, (prefs, entry) -> prefs.putInt(entry.getKey().key, Integer.class.cast(entry.getValue())),
+                    Set.class, (prefs, entry) -> prefs.put(entry.getKey().key, String.join(",", ((Iterable<? extends CharSequence>) entry.getValue())))
+            );
+
     private ClientConnectionConfig(String key, String desc, Class<?> propertyType, boolean adminConfig, boolean consumerConfig, boolean producerConfig) {
         this.key = key;
         this.adminConfig = adminConfig;
@@ -110,8 +122,17 @@ public enum ClientConnectionConfig {
         return KEY_CONFIG_MAP.get(key);
     }
 
+    public Object getFromPeferences(Preferences preferences) {
+        String value = preferences.get(key, "");
+        return value.isBlank() ? null : valueFromString(value);
+    }
+
+    public void putPeference(Preferences preferences, Object value) {
+        MAPPERS.get(propertyType).accept(preferences, new AbstractMap.SimpleEntry<>(this, value));
+    }
+
     public Object valueFromString(String value) {
-        if (!CONVERTERS.containsKey(this.propertyType)) {
+        if (!CONVERTERS.containsKey(propertyType)) {
             throw new IllegalArgumentException("No converter found for " + propertyType);
         }
         return CONVERTERS.get(this.propertyType).apply(value);
