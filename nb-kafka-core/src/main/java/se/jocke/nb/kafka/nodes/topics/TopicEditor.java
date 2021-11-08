@@ -88,15 +88,15 @@ public class TopicEditor extends javax.swing.JPanel {
     }
 
     public Integer getNumberOfPartitions() {
-        return (Integer) jSpinner1.getValue();
+        return (Integer) partitionsSpinner.getValue();
     }
 
     public Short getReplicationFactor() {
-        return ((Number) jSpinner2.getValue()).shortValue();
+        return ((Number) replicationFactorSpinner.getValue()).shortValue();
     }
 
     public String getTopicName() {
-        return jTextField1.getText();
+        return topicNameTextField.getText();
     }
 
     /**
@@ -108,25 +108,25 @@ public class TopicEditor extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jTextField1 = new javax.swing.JTextField();
+        topicNameTextField = new javax.swing.JTextField();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
-        jSpinner1 = new javax.swing.JSpinner();
+        partitionsSpinner = new javax.swing.JSpinner();
         jLabel3 = new javax.swing.JLabel();
-        jSpinner2 = new javax.swing.JSpinner();
+        replicationFactorSpinner = new javax.swing.JSpinner();
         kafkaPropsPanel = new PropertySheet();
 
-        jTextField1.setText(org.openide.util.NbBundle.getMessage(TopicEditor.class, "TopicEditor.jTextField1.text")); // NOI18N
+        topicNameTextField.setText(org.openide.util.NbBundle.getMessage(TopicEditor.class, "TopicEditor.topicNameTextField.text")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(TopicEditor.class, "TopicEditor.jLabel1.text")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel2, org.openide.util.NbBundle.getMessage(TopicEditor.class, "TopicEditor.jLabel2.text")); // NOI18N
 
-        jSpinner1.setModel(new javax.swing.SpinnerNumberModel(1, 1, 4000, 1));
+        partitionsSpinner.setModel(new javax.swing.SpinnerNumberModel(1, 1, 4000, 1));
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel3, org.openide.util.NbBundle.getMessage(TopicEditor.class, "TopicEditor.jLabel3.text")); // NOI18N
 
-        jSpinner2.setModel(new javax.swing.SpinnerNumberModel(1, 1, 10, 1));
+        replicationFactorSpinner.setModel(new javax.swing.SpinnerNumberModel(1, 1, 10, 1));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -143,9 +143,9 @@ public class TopicEditor extends javax.swing.JPanel {
                             .addComponent(jLabel1))
                         .addGap(18, 18, 18)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jTextField1)
-                            .addComponent(jSpinner2, javax.swing.GroupLayout.DEFAULT_SIZE, 341, Short.MAX_VALUE)
-                            .addComponent(jSpinner1))))
+                            .addComponent(topicNameTextField)
+                            .addComponent(replicationFactorSpinner, javax.swing.GroupLayout.DEFAULT_SIZE, 341, Short.MAX_VALUE)
+                            .addComponent(partitionsSpinner))))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -153,16 +153,16 @@ public class TopicEditor extends javax.swing.JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(topicNameTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel1))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
-                    .addComponent(jSpinner1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(partitionsSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel3)
-                    .addComponent(jSpinner2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(replicationFactorSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addComponent(kafkaPropsPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
@@ -173,9 +173,9 @@ public class TopicEditor extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
-    private javax.swing.JSpinner jSpinner1;
-    private javax.swing.JSpinner jSpinner2;
-    private javax.swing.JTextField jTextField1;
     private javax.swing.JPanel kafkaPropsPanel;
+    private javax.swing.JSpinner partitionsSpinner;
+    private javax.swing.JSpinner replicationFactorSpinner;
+    private javax.swing.JTextField topicNameTextField;
     // End of variables declaration//GEN-END:variables
 }
