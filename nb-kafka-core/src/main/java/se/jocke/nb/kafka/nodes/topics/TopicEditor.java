@@ -1,6 +1,7 @@
 package se.jocke.nb.kafka.nodes.topics;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -18,6 +19,14 @@ import org.openide.nodes.Sheet;
 public class TopicEditor extends javax.swing.JPanel {
 
     private final Map<String, Object> props;
+
+    private static final Map<Class<?>, Object> defaultValues = Map.ofEntries(
+            new AbstractMap.SimpleEntry<>(Boolean.class, Boolean.FALSE),
+            new AbstractMap.SimpleEntry<>(String.class, ""),
+            new AbstractMap.SimpleEntry<>(Long.class, -1l),
+            new AbstractMap.SimpleEntry<>(Integer.class, -1),
+            new AbstractMap.SimpleEntry<>(Double.class, -1d)
+    );
 
     /**
      * Creates new form TopicEditor
@@ -44,13 +53,33 @@ public class TopicEditor extends javax.swing.JPanel {
         return new PropertySupport.ReadWrite(cp.getKey(), cp.getType(), cp.getKey(), cp.getDescription()) {
             @Override
             public Object getValue() throws IllegalAccessException, InvocationTargetException {
-                return cp.getValue(props);
+                final Object value = cp.getValue(props);
+                return value == null ? defaultValues.get(cp.getType()) : value;
             }
 
             @Override
             public void setValue(Object val) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-                cp.setValue(props, val);
-            }  
+                if (defaultValues.get(cp.getType()).equals(val)) {
+                    restoreDefaultValue();
+                } else {
+                    cp.setValue(props, val);
+                }
+            }
+
+            @Override
+            public boolean isDefaultValue() {
+                return cp.getValue(props) == null;
+            }
+
+            @Override
+            public void restoreDefaultValue() throws IllegalAccessException, InvocationTargetException {
+                cp.clearValue(props);
+            }
+
+            @Override
+            public boolean supportsDefaultValue() {
+                return true;
+            }
         };
     }
 

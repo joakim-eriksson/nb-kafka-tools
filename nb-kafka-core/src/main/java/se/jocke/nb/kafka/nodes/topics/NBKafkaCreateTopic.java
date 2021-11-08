@@ -69,6 +69,10 @@ public class NBKafkaCreateTopic {
         public void setValue(Map<String, Object> props, Object value) {
             props.put(getKey(), value);
         }
+        
+        public void clearValue(Map<String, Object> props) {
+            props.remove(getKey());
+        }
     }
 
     private NBKafkaCreateTopic(String name, Optional<Integer> numPartitions, Optional<Short> replicationFactor, Map<String, String> configs) {
