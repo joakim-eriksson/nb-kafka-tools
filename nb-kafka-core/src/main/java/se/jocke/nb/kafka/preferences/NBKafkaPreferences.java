@@ -33,24 +33,24 @@ public final class NBKafkaPreferences {
     }
 
     public static Map<String, Object> readConsumerConfigs(NBKafkaServiceKey key) {
-        return readConfigsByType(key, c -> c.isConsumerConfig());
+        return readConfigsByType(key, c -> c.isConsumerConfig(), true);
     }
 
     public static Map<String, Object> readProducerConfigs(NBKafkaServiceKey key) {
-        return readConfigsByType(key, c -> c.isProducerConfig());
+        return readConfigsByType(key, c -> c.isProducerConfig(), true);
     }
 
     public static Map<String, Object> readAdminConfigs(NBKafkaServiceKey key) {
-        return readConfigsByType(key, c -> c.isAdminConfig());
+        return readConfigsByType(key, c -> c.isAdminConfig(), true);
     }
 
     public static Map<ClientConnectionConfig, Object> readAll(NBKafkaServiceKey key) {
-        return readConfigsByType(key, (k) -> true).entrySet()
+        return readConfigsByType(key, (k) -> true, false).entrySet()
                 .stream().map(e -> new SimpleEntry<>(ClientConnectionConfig.ofKey(e.getKey()), e.getValue()))
                 .collect(toMap(Entry::getKey, Entry::getValue));
     }
 
-    public static Map<String, Object> readConfigsByType(NBKafkaServiceKey kafkaServiceKey, Predicate<ClientConnectionConfig> predicate) {
+    public static Map<String, Object> readConfigsByType(NBKafkaServiceKey kafkaServiceKey, Predicate<ClientConnectionConfig> predicate, boolean useMapper) {
         try {
             Map<String, Object> conf = Arrays.stream(PREFS_FOR_MODULE.node(kafkaServiceKey.getName()).keys())
                     .filter(key -> predicate.test(ClientConnectionConfig.ofKey(key)))
@@ -59,14 +59,14 @@ public final class NBKafkaPreferences {
                     .map(entry -> new AbstractMap.SimpleEntry<>(entry.getKey(), entry.getValue().get()))
                     .collect(toMap(Entry::getKey, Entry::getValue));
 
+            if (useMapper) {
+                Lookup.getDefault()
+                        .lookupAll(ClientConnectionConfigMapper.class)
+                        .stream()
+                        .forEach(mapper -> mapper.map(kafkaServiceKey, new LinkedHashMap<>(conf)).forEach(conf::putIfAbsent));
+            }
             //No overrides allowed
-            Lookup.getDefault()
-                    .lookupAll(ClientConnectionConfigMapper.class)
-                    .stream()
-                    .forEach(mapper -> mapper.map(kafkaServiceKey, new LinkedHashMap<>(conf)).forEach(conf::putIfAbsent));
-
             return conf;
-
         } catch (BackingStoreException ex) {
             throw new IllegalStateException(ex);
         }
