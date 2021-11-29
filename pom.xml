@@ -8,8 +8,8 @@
     <packaging>pom</packaging>
 
     <name>nb-kafka</name>
-    
     <description>Adds basic support for creating and viewing kafka topics in NetBeans.</description>
+    <url>https://github.com/joakim-eriksson/nb-kafka-tools</url>
     
     <developers>
         <developer>
