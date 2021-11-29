@@ -8,7 +8,30 @@
     <packaging>pom</packaging>
 
     <name>nb-kafka</name>
-
+    
+    <description>Adds basic support for creating and viewing kafka topics in NetBeans.</description>
+    
+    <developers>
+        <developer>
+            <name>Jaokim</name>
+            <email>jockeeriksson@msn.com</email>
+        </developer>
+    </developers>
+    
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    
+    <scm>
+        <connection>scm:git:git://github.com:joakim-eriksson/nb-kafka-tools.git</connection>
+        <developerConnection>scm:git:git@github.com:joakim-eriksson/nb-kafka-tools.git</developerConnection>
+        <url>https://github.com/joakim-eriksson/nb-kafka-tools</url>
+    </scm>
+    
     <repositories>
         <!--
         Repository hosting NetBeans modules, especially APIs.
