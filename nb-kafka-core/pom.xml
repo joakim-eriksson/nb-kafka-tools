@@ -64,11 +64,13 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>nb-kafka-client</artifactId>
             <version>${project.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>google-cloud-secretmanager</artifactId>
             <version>${project.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.netbeans.api</groupId>
