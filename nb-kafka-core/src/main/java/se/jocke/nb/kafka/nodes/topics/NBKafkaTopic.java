@@ -11,36 +11,41 @@ import se.jocke.nb.kafka.NBKafkaConfigEntry;
  *
  * @author jocke
  */
-public final class NBKafkaTopic {
+public final class NBKafkaTopic implements Comparable<NBKafkaTopic> {
 
-    private final String name;
+  private final String name;
 
-    private final List<NBKafkaConfigEntry> configs;
+  private final List<NBKafkaConfigEntry> configs;
 
-    public NBKafkaTopic(String name, Optional<Config> optionalConf) {
-        this.name = name;
-        this.configs = optionalConf.
-                map(conf -> mapToConfigs(conf))
-                .orElse(new ArrayList<>());
-    }
+  public NBKafkaTopic(String name, Optional<Config> optionalConf) {
+    this.name = name;
+    this.configs = optionalConf.
+        map(conf -> mapToConfigs(conf))
+        .orElse(new ArrayList<>());
+  }
 
-    private static List<NBKafkaConfigEntry> mapToConfigs(Config conf) {
-        return conf.entries()
-                .stream()
-                .map(cfgEntry -> new NBKafkaConfigEntry(cfgEntry.name(), cfgEntry.value(), cfgEntry.documentation()))
-                .collect(toList());
-    }
+  private static List<NBKafkaConfigEntry> mapToConfigs(Config conf) {
+    return conf.entries()
+        .stream()
+        .map(cfgEntry -> new NBKafkaConfigEntry(cfgEntry.name(), cfgEntry.value(), cfgEntry.documentation()))
+        .collect(toList());
+  }
 
-    public String getName() {
-        return name;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public List<NBKafkaConfigEntry> getConfigs() {
-        return new ArrayList<>(configs);
-    }
+  public List<NBKafkaConfigEntry> getConfigs() {
+    return new ArrayList<>(configs);
+  }
 
-    @Override
-    public String toString() {
-        return "KafkaTopic{" + "name=" + name + '}';
-    }
+  @Override
+  public String toString() {
+    return "KafkaTopic{" + "name=" + name + '}';
+  }
+
+  @Override
+  public int compareTo(NBKafkaTopic o) {
+    return this.name.compareTo(o.name);
+  }
 }

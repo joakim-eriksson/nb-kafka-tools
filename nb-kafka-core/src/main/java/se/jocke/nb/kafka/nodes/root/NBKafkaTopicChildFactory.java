@@ -3,6 +3,7 @@ package se.jocke.nb.kafka.nodes.root;
 import se.jocke.nb.kafka.nodes.topics.NBKafkaTopicNode;
 import java.lang.invoke.MethodHandles;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
@@ -62,6 +63,8 @@ public class NBKafkaTopicChildFactory extends ChildFactory<NBKafkaTopic> {
                 .map(name -> new NBKafkaTopic(name, Optional.empty()))
                 .filter(not(topics::contains))
                 .forEach(topics::add);
+
+        Collections.sort(topics);
 
         return true;
     }
