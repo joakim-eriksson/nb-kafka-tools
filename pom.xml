@@ -4,7 +4,7 @@
 
     <groupId>io.github.joakim-eriksson</groupId>
     <artifactId>nb-kafka</artifactId>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.0.2</version>
     <packaging>pom</packaging>
 
     <name>nb-kafka</name>
@@ -30,7 +30,8 @@
         <connection>scm:git:git://github.com:joakim-eriksson/nb-kafka-tools.git</connection>
         <developerConnection>scm:git:git@github.com:joakim-eriksson/nb-kafka-tools.git</developerConnection>
         <url>https://github.com/joakim-eriksson/nb-kafka-tools</url>
-    </scm>
+      <tag>nb-kafka-1.0.2</tag>
+  </scm>
     
     <repositories>
         <!--
