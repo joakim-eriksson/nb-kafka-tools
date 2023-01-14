@@ -1,15 +1,15 @@
 package se.jocke.nb.kafka.nodes.root;
 
-import java.util.Arrays;
 import javax.swing.Action;
 import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
-import org.openide.nodes.Sheet;
+
 import static se.jocke.nb.kafka.action.Actions.actions;
 import static se.jocke.nb.kafka.action.Actions.action;
 import static se.jocke.nb.kafka.action.ActionCommandDispatcher.*;
+
 import se.jocke.nb.kafka.preferences.NBKafkaPreferences;
 
 public final class NBKafkaServiceRootNode extends AbstractNode {
@@ -21,13 +21,12 @@ public final class NBKafkaServiceRootNode extends AbstractNode {
         this.kafkaServiceChildFactory = kafkaServiceChildFactory;
         setIconBaseWithExtension("se/jocke/nb/kafka/nodes/root/kafka.png");
         setDisplayName("Kafka");
-
     }
 
     public NBKafkaServiceRootNode() {
         this(new NBKafkaServiceChildFactory());
     }
-        
+
     @Override
     public Action[] getActions(boolean context) {
         return actions(
@@ -46,7 +45,8 @@ public final class NBKafkaServiceRootNode extends AbstractNode {
 
     private void createConnection() {
         NBKafkaServiceEditor editKafkaServicePanel = new NBKafkaServiceEditor();
-        DialogDescriptor descriptor = new DialogDescriptor(editKafkaServicePanel, "Create connection", true, onAction(ok(e -> onCreateKafakaServiceDialogDescriptorActionOK(editKafkaServicePanel))));
+        DialogDescriptor descriptor = new DialogDescriptor(editKafkaServicePanel, "Create connection", true,
+            onAction(ok(e -> onCreateKafakaServiceDialogDescriptorActionOK(editKafkaServicePanel))));
         DialogDisplayer.getDefault().notifyLater(descriptor);
     }
 }
