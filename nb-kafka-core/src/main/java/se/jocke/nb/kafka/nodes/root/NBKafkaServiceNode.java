@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import static java.util.stream.Collectors.toMap;
@@ -150,6 +152,17 @@ public class NBKafkaServiceNode extends AbstractNode {
     DialogDisplayer.getDefault().notifyLater(descriptor);
   }
 
+
+  private void deleteNode() {
+    final Object result = DialogDisplayer.getDefault()
+        .notify(new NotifyDescriptor.Confirmation("Delete node " + kafkaServiceKey.getName() + " ?"));
+    if (NotifyDescriptor.YES_OPTION.equals(result)) {
+      Logger.getLogger(NBKafkaServiceNode.class.getName()).log(Level.INFO, "Delete service {0}", kafkaServiceKey.getName());
+      NBKafkaPreferences.delete(kafkaServiceKey);
+      refreshParent();
+    }
+  }
+
   private void onCreateFilterActionOK(NBKafkaServiceFilterPanel filterPanel) {
     final String name = filterPanel.getFilterName();
     final String expression = filterPanel.getFilterExpression();
@@ -163,9 +176,13 @@ public class NBKafkaServiceNode extends AbstractNode {
       props.put(ClientConnectionConfig.LIST_TOPICS_FILTER_EXPESSION, expression);
       props.put(ClientConnectionConfig.LIST_TOPICS_FILTER_IS_REGEX, filterPanel.isFilterReqex());
       NBKafkaPreferences.store(new NBKafkaServiceKey(filterPanel.getFilterName()), props);
-      NBKafkaServiceRootNode node = (NBKafkaServiceRootNode) getParentNode();
-      node.refresh();
+      refreshParent();
     }
+  }
+
+  private void refreshParent() {
+    NBKafkaServiceRootNode node = (NBKafkaServiceRootNode) getParentNode();
+    node.refresh();
   }
 
   private boolean isValidRegex(String expression, boolean isRegex) {
@@ -210,6 +227,7 @@ public class NBKafkaServiceNode extends AbstractNode {
         action("View topic", this::viewTopic),
         action("Export settings", this::exportSettings),
         action("Add filter", this::addFilter),
+        action("Delete", this::deleteNode),
         SystemAction.get(PropertiesAction.class)
     );
   }
