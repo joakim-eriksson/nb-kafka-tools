@@ -41,16 +41,18 @@ public enum ClientConnectionConfig {
     GCP_SECRET_VERSION_REQUEST_NAME("gcp.secret.version.request.name", "Secret name", STRING, ConfigFor.NONE),
     GCP_SECRET_ENCODED_KEY("gcp.encoded.key", "Secret key", STRING, ConfigFor.NONE),
     SAVED_TOPICS("saved.topics", "Topics saved", SET, ConfigFor.NONE),
-    LIST_TOPICS_DISABLED("list.topics.disabled", ClientConnectionConfig.LIST_TOPICS_DISABLED_DOC, BOOLEAN, ConfigFor.NONE);
-    
+    LIST_TOPICS_DISABLED("list.topics.disabled", ClientConnectionConfig.LIST_TOPICS_DISABLED_DOC, BOOLEAN, ConfigFor.NONE),
+    LIST_TOPICS_FILTER_IS_REGEX("list.topics.filter.regex", ClientConnectionConfig.LIST_TOPICS_FILTER_IS_REGEX_DOC, BOOLEAN, ConfigFor.NONE),
+    LIST_TOPICS_FILTER_EXPESSION("list.topics.filter.expression", ClientConnectionConfig.LIST_TOPICS_FILTER_EXPESSION_DOC, STRING, ConfigFor.NONE);
+
     private static final String SASL_JAAS_CONFIG_TEMPLATE_DOC = "Template to use if credentials are fetched externaly for JAAS Config ex, org.apache.kafka.common.security.scram.ScramLoginModule required username='%s' password='%s';";
-    
+
     private static final String DEFAULT_API_TIMEOUT_MS_DOC = "Specifies the timeout (in milliseconds)";
-    
+
     private static final String GCP_SECRET_ENABLED_DOC = "If name and password is a GCP secret";
-    
+
     private static final String LIST_TOPICS_DISABLED_DOC = "Is connecting to kafka and get a list of topics possible, all users may not be authorized to do so";
-    
+
     private static final String SECURITY_PROTOCOL_DOC = "Protocol used to communicate with brokers. Valid values are: PLAINTEXT, SSL, SASL_PLAINTEXT, SASL_SSL.";
 
     private static final String CONNECTIONS_MAX_IDLE_MS_DOC = "Close idle connections after the number of milliseconds specified by this config.";
@@ -60,6 +62,10 @@ public enum ClientConnectionConfig {
     private static final String BOOTSTRAP_SERVERS_DOC = "A list of host/port pairs to use for establishing the initial connection to the Kafka cluster";
 
     private static final String CLIENT_DNS_LOOKUP_DOC = "Controls how the client uses DNS lookups.";
+
+    private static final String LIST_TOPICS_FILTER_IS_REGEX_DOC = "Is topic filter a regex pattern";
+
+    private static final String LIST_TOPICS_FILTER_EXPESSION_DOC = "Expression used to filter topics, if not reqex the String contains method is used";
 
     private final String key;
 

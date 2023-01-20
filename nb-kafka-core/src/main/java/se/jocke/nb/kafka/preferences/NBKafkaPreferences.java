@@ -1,5 +1,6 @@
 package se.jocke.nb.kafka.preferences;
 
+import com.google.common.base.Predicates;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
@@ -16,7 +17,10 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
+import java.util.regex.Pattern;
+
 import static java.util.stream.Collectors.toMap;
+
 import java.util.stream.Stream;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
@@ -24,6 +28,7 @@ import org.openide.util.NbPreferences;
 import se.jocke.nb.kafka.config.ClientConnectionConfig;
 import se.jocke.nb.kafka.config.ClientConnectionConfigMapper;
 import se.jocke.nb.kafka.nodes.root.NBKafkaServiceKey;
+import se.jocke.nb.kafka.nodes.topics.NBKafkaTopic;
 
 public final class NBKafkaPreferences {
 
@@ -48,6 +53,18 @@ public final class NBKafkaPreferences {
         return readConfigsByType(key, (k) -> true, false).entrySet()
                 .stream().map(e -> new SimpleEntry<>(ClientConnectionConfig.ofKey(e.getKey()), e.getValue()))
                 .collect(toMap(Entry::getKey, Entry::getValue));
+    }
+
+    public static Predicate<NBKafkaTopic> topicFilter(NBKafkaServiceKey key) {
+      final Optional<String> expression = getString(key, ClientConnectionConfig.LIST_TOPICS_FILTER_EXPESSION);
+        if(!expression.isEmpty()) {
+          if(getBoolean(key, ClientConnectionConfig.LIST_TOPICS_FILTER_IS_REGEX)) {
+            return topic -> Pattern.compile(expression.get()).matcher(topic.getName()).matches();
+          } else {
+            return topic -> topic.getName().contains(expression.get());
+          }
+        }
+        return Predicates.alwaysTrue();
     }
 
     public static Map<String, Object> readConfigsByType(NBKafkaServiceKey kafkaServiceKey, Predicate<ClientConnectionConfig> predicate, boolean useMapper) {

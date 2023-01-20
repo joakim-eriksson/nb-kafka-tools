@@ -15,7 +15,7 @@ public class Actions {
             @Override
             public void actionPerformed(ActionEvent e) {
                 runnnable.run();
-            }
+          }
         };
     }
 
